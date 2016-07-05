@@ -2,7 +2,8 @@
   (:require [clj-http.client :as http-client]
             [clojure.data.json :as json]
             [clj-time.coerce :as coerce-time]
-            [clj-time.format :as format-time]))
+            [clj-time.format :as format-time]
+            [digest :as digest]))
 
 (defn get-readable-time
   "get now yyyy-MM-dd HH:mm:ss"
@@ -31,3 +32,22 @@
        :open open
        :vol vol
        :last last})))
+
+(defn get-account-info
+  "get account info"
+  [access_key secret_key]
+  (let [unix-time (int (/ (System/currentTimeMillis) 1000))
+        sign-str (str "access_key="
+                      access_key
+                      "&created="
+                      unix-time
+                      "&method=get_account_info&secret_key="
+                      secret_key)
+        sign (digest/md5 sign-str)]
+    (json/read-str (:body (http-client/post "https://api.huobi.com/apiv3"
+                                            {:headers {"Content-Type" "application/x-www-form-urlencoded"}
+                                             :form-params {:method "get_account_info"
+                                                           :access_key access_key
+                                                           :created unix-time
+                                                           :sign sign}}))
+                   :key-fn keyword)))

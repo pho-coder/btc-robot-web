@@ -1,12 +1,14 @@
 (ns rocks.pho.btc-robot-web.core
-  (:require [rocks.pho.btc-robot-web.handler :as handler]
-            [luminus.repl-server :as repl]
+  (:require [luminus.repl-server :as repl]
             [luminus.http-server :as http]
-            [rocks.pho.btc-robot-web.config :refer [env]]
             [clojure.tools.cli :refer [parse-opts]]
             [clojure.tools.logging :as log]
             [luminus.logger :as logger]
-            [mount.core :as mount])
+            [mount.core :as mount]
+
+            [rocks.pho.btc-robot-web.handler :as handler]
+            [rocks.pho.btc-robot-web.config :refer [env]]
+            [rocks.pho.btc-robot-web.events :as events])
   (:gen-class))
 
 (def cli-options
@@ -35,7 +37,6 @@
 (mount/defstate log
                 :start (logger/init (:log-config env)))
 
-
 (defn stop-app []
   (doseq [component (:stopped (mount/stop))]
     (log/info component "stopped"))
@@ -47,8 +48,9 @@
                         mount/start-with-args
                         :started)]
     (log/info component "started"))
-  (log/debug "access key" (:access-key (:huobi env)))
-  (log/debug "secret key" (:secret-key (:huobi env)))
+  (log/debug "access key:" events/huobi-access-key)
+  (log/debug "secret key:" events/huobi-secret-key)
+  (events/reset-wallet)
   (.addShutdownHook (Runtime/getRuntime) (Thread. stop-app)))
 
 (defn -main [& args]

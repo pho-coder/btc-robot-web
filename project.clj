@@ -26,7 +26,8 @@
                  [luminus-immutant "0.2.0"]
                  [clj-http "3.1.0"]
                  [org.clojure/data.json "0.2.6"]
-                 [clj-time "0.12.0"]]
+                 [clj-time "0.12.0"]
+                 [digest "1.4.4"]]
 
   :min-lein-version "2.0.0"
 
