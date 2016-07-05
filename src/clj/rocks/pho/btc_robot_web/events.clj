@@ -19,4 +19,6 @@
   []
   (let [account-info (utils/get-account-info huobi-access-key
                                              huobi-secret-key)]
-    (log/info account-info)))
+    (mount/start-with {#'my-wallet {:cny (:available_cny_display account-info)
+                                    :btc (:available_btc_display account-info)}})
+    (log/info my-wallet)))
