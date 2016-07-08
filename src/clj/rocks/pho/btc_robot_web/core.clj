@@ -48,6 +48,7 @@
                         mount/start-with-args
                         :started)]
     (log/info component "started"))
+  (log/debug env)
   (log/debug "access key:" events/huobi-access-key)
   (log/debug "secret key:" events/huobi-secret-key)
   (events/reset-wallet)
