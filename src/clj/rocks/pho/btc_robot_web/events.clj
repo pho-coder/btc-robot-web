@@ -59,6 +59,7 @@
                 :btc (:btc my-wallet)}]
     (try
       (let [re (utils/buy-market huobi-access-key huobi-secret-key (:cny (:money before)))]
+        (log/debug re)
         (reset-wallet)
         (if (= "success" (:result re))
           (do (utils/write-a-map (buy-event-model (utils/get-readable-time (System/currentTimeMillis))
