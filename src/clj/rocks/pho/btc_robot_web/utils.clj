@@ -63,7 +63,6 @@
 (defn buy-market
   "buy now"
   [access-key secret-key amount]
-  (log/debug access-key secret-key amount)
   (let [unix-time (int (/ (System/currentTimeMillis) 1000))
         sign-str (str "access_key=" access-key
                       "&amount=" amount
