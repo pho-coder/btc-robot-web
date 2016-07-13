@@ -8,7 +8,15 @@
 (defn get-readable-time
   "get now yyyy-MM-dd HH:mm:ss"
   [long-time]
-  (let [t (coerce-time/from-long (* (Integer/parseInt long-time) 1000))
+  (let [t (coerce-time/from-long (* (condp = (type long-time)
+                                      String (Long/parseLong long-time)
+                                      Long long-time
+                                      Integer long-time
+                                      (throw (Exception. (str long-time " type: " (type long-time) " NOT Long or String!"))))
+                                    (case (.length (str long-time))
+                                      10 1000
+                                      13 1
+                                      (throw (Exception. (str long-time " length error!"))))))
         f (format-time/formatter-local "yyyy-MM-dd HH:mm:ss")]
     (format-time/unparse f t)))
 
@@ -93,3 +101,22 @@
                                                            :created unix-time
                                                            :sign sign}}))
                    :key-fn keyword)))
+
+(defn write-a-map
+  "write a map append to a file"
+  [a-map a-file]
+  (spit a-file (str (json/write-str a-map) "\n") :append true))
+
+(defn read-a-json-file
+  "read a json file by filter"
+  ([a-file]
+   (with-open [rdr (clojure.java.io/reader a-file)]
+     (map #(json/read-str %
+                          :key-fn keyword)
+          (doall (line-seq rdr)))))
+  ([a-file filter-fn]
+   (with-open [rdr (clojure.java.io/reader a-file)]
+     (filter filter-fn
+             (map #(json/read-str %
+                                  :key-fn keyword)
+                  (doall (line-seq rdr)))))))
