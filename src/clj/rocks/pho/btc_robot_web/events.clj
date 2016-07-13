@@ -58,8 +58,7 @@
   (let [before {:money (:cny my-wallet)
                 :btc (:btc my-wallet)}]
     (try
-      (let [_ (log/debug (int (:cny (:money before))))
-            re (utils/buy-market huobi-access-key huobi-secret-key (int (:cny (:money before))))]
+      (let [re (utils/buy-market huobi-access-key huobi-secret-key (int (:money before)))]
         (log/debug re)
         (reset-wallet)
         (if (= "success" (:result re))
