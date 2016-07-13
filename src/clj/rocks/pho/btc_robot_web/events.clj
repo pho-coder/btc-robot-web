@@ -45,8 +45,8 @@
   (try
     (let [account-info (utils/get-account-info huobi-access-key
                                                huobi-secret-key)]
-      (mount/start-with {#'my-wallet {:cny (:available_cny_display account-info)
-                                      :btc (:available_btc_display account-info)}})
+      (mount/start-with {#'my-wallet {:cny (Float/parseFloat (:available_cny_display account-info))
+                                      :btc (Float/parseFloat (:available_btc_display account-info))}})
       (log/info my-wallet))
     (catch Exception e
       (log/error e)
