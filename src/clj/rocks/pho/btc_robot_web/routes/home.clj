@@ -16,7 +16,7 @@
 
 (defn buy-all [code]
   (layout/render
-   "buy.html" (if (= code 7)
+   "buy.html" (if (= code "7")
                 {:success (:success (events/buy-all))}
                 {:success "error"})))
 
