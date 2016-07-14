@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+bin=`dirname $0`
+bin=`cd "$bin"; pwd`
+DEFAULT_CONF_DIR="$bin"/../conf
+DEFAULT_HOME=`cd "$bin"/..;pwd`
+BTC_ROBOT__CONF_DIR=${BTC_ROBOT__CONF_DIR:-$DEFAULT_CONF_DIR}
+BTC_ROBOT__HOME=${BTC_ROBOT__HOME:-$DEFAULT_HOME}
+BTC_ROBOT__LOG_DIR=${BTC_ROBOT__LOG_DIR:-$BTC_ROBOT__HOME/log}
+BTC_ROBOT__EVENTS_DIR=${BTC_ROBOT__EVENTS_DIR:-$BTC_ROBOT__LOG_DIR}
+PID_FILE="$BTC_ROBOT__LOG_DIR/.btc-robot.run.pid"
+mkdir -p $BTC_ROBOT__LOG_DIR
+BTC_ROBOT__HEAP_OPTS="-Xmx256M -Xms128M"
+
+function running(){
+        if [ -f "$PID_FILE" ]; then
+                pid=$(cat "$PID_FILE")
+                process=`ps aux | grep " $pid " | grep -v grep`;
+                if [ "$process" == "" ]; then
+                        return 1;
+                else
+                        return 0;
+                fi
+        else
+                return 1
+        fi
+}
+
+function start_server() {
+        if running; then
+                echo "is running."
+                exit 1
+        fi
+        readonly MASTER_JARS="$(ls "$BTC_ROBOT__HOME"/btc-robot-web.jar 2> /dev/null | grep btc-robot-web | tr "\n" :)"
+        if [ -n "${JAVA_HOME}" ]; then
+          RUNNER="${JAVA_HOME}/bin/java"
+        else
+          if [ `command -v java` ]; then
+            RUNNER="java"
+          else
+            echo "JAVA_HOME is not set" >&2
+            exit 1
+          fi
+        fi
+        CLASSPATH="$BTC_ROBOT__CONF_DIR:$MASTER_JARS"
+        nohup "$RUNNER" $BTC_ROBOT__HEAP_OPTS -cp "$CLASSPATH" -Dbtc.robot.configuration="$BTC_ROBOT__CONF_DIR" -Dlog4j.configuration=btc.robot.log4j.properties -Dbtc.robot.home="$BTC_ROBOT__HOME" rocks.pho.btc_robot_web.core "$@" > "$BTC_ROBOT__LOG_DIR"/btc-robot.out 2>&1 < /dev/null &
+        echo $! > $PID_FILE
+        chmod 755 $PID_FILE
+       sleep 1;
+       tail -f "$BTC_ROBOT__LOG_DIR"/btc_robot.log
+}
+
+function stop_server() {
+        if ! running; then
+                echo "btc-robot is not running."
+        fi
+        count=0
+        pid=$(cat $PID_FILE)
+        while running;
+        do
+          let count=$count+1
+          echo "Stopping $count times"
+          if [ $count -gt 5 ]; then
+              echo "kill -9 $pid"
+              kill -9 $pid
+          else
+              kill $pid
+          fi
+          sleep 3;
+        done
+        echo "Stop btc-robot successfully." 
+        rm $PID_FILE
+}
+
+function status(){
+        if running;then
+                echo "btc-robot is running."
+        else
+                echo "btc-robot is not running."
+        fi
+        exit 0
+}
+
+function help() {
+    echo "Usage: btc-rbot {start|stop}" >&2
+    echo "       start:             start"
+    echo "       stop:              stop"
+}
+
+command=$1
+shift 1
+case $command in
+    status)
+        status $@;
+        ;;
+    start)
+        start_server $@;
+        ;;
+    stop)
+        stop_server $@;
+        ;;
+    restart)
+        stop_server $@;
+        start_server $@;
+        ;;
+    *)
+        help;
+        exit 1;
+        ;;
+esac

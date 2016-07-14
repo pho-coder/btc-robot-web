@@ -12,7 +12,7 @@
                 :start (:secret-key (:huobi env)))
 
 (mount/defstate events-dir
-                :start (:events-dir (:btc-robot-web env)))
+                :start (:events-dir (:btc-robot env)))
 
 (mount/defstate my-wallet
                 :start {:cny nil

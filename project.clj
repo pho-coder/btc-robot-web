@@ -44,7 +44,7 @@
   {:uberjar {:omit-source true
              
              :aot :all
-             :uberjar-name "rocks.pho.btc-robot-web.jar"
+             :uberjar-name "btc-robot-web.jar"
              :source-paths ["env/prod/clj"]
              :resource-paths ["env/prod/resources"]}
 
