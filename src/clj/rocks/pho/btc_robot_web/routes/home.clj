@@ -9,7 +9,9 @@
 (defn home-page []
   (layout/render
    "home.html" {:docs (-> "docs/docs.md" io/resource slurp)
-                :staticmarket (utils/get-staticmarket)}))
+                :staticmarket (utils/get-staticmarket)
+                :account-info (utils/get-account-info events/huobi-access-key
+                                                      events/huobi-secret-key)}))
 
 (defn about-page []
   (layout/render "about.html"))
