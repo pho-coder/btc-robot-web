@@ -46,7 +46,7 @@ function start_server() {
         echo $! > $PID_FILE
         chmod 755 $PID_FILE
        sleep 1;
-       tail -f "$BTC_ROBOT__LOG_DIR"/btc_robot.log
+       tail -f "$BTC_ROBOT__LOG_DIR"/btc-robot.log
 }
 
 function stop_server() {
