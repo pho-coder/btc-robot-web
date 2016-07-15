@@ -30,7 +30,7 @@ function start_server() {
                 echo "is running."
                 exit 1
         fi
-        readonly MASTER_JARS="$(ls "$BTC_ROBOT__HOME"/btc-robot-web.jar 2> /dev/null | grep btc-robot-web | tr "\n" :)"
+        readonly MASTER_JARS="$(ls "$BTC_ROBOT__HOME"/btc-robot-web-*.jar 2> /dev/null | grep btc-robot-web | tr "\n" :)"
         if [ -n "${JAVA_HOME}" ]; then
           RUNNER="${JAVA_HOME}/bin/java"
         else
