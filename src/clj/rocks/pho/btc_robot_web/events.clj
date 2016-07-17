@@ -58,6 +58,7 @@
                  "buy" (utils/buy-market huobi-access-key huobi-secret-key (:money before))
                  "sell" (utils/sell-market huobi-access-key huobi-secret-key (:btc before)))]
         (log/debug re)
+        (Thread/sleep 3000)
         (reset-wallet)
         (if (= "success" (:result re))
           (do (utils/write-a-map (event-model type
