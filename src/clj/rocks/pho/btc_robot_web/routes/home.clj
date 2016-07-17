@@ -18,11 +18,18 @@
 (defn buy-all [code]
   (layout/render
    "buy.html" (if (= code "7")
-                {:success (:success (events/buy-all))}
+                {:success (:success (events/show-hand "buy"))}
                 {:success "error"})))
+
+(defn sell-all [code]
+  (layout/render
+   "sell.html" (if (= code "7")
+                 {:success (:success (events/show-hand "sell"))}
+                 {:success "error"})))
 
 (defroutes home-routes
   (GET "/" [] (home-page))
   (GET "/about" [] (about-page))
-  (GET "/buy-all" [code] (buy-all code)))
+  (GET "/buy-all" [code] (buy-all code))
+  (GET "sell-all" [code] (sell-all code)))
 
