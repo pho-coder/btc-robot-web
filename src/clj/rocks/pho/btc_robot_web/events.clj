@@ -18,27 +18,20 @@
                 :start {:cny nil
                         :btc nil})
 
-(defn buy-event-model
- "buy event model"
-  [time before-money before-btc after-money after-btc success?]
-  {:type "buy"
-   :before {:money before-money
-            :btc before-btc}
-   :after {:money after-money
-           :btc after-btc}
-   :time time
-   :success success?})
+(mount/defstate event-types :start #{"buy" "sell"})
 
-(defn sell-event-model
-  "sell event model"
-  [time before-money before-btc after-money after-btc success?]
-  {:type "sell"
-   :before {:money before-money
-            :btc before-btc}
-   :after {:money after-money
-           :btc after-btc}
-   :time time
-   :success success?})
+(defn event-model
+  "buy, sell event model"
+  [type time before-money before-btc after-money after-btc success?]
+  (if (contains? event-types type)
+    {:type type
+     :before {:money before-money
+              :btc before-btc}
+     :after {:money after-money
+             :btc after-btc}
+     :time time
+     :success success?}
+    (throw (Exception. (str "event type: " type " ERROR!")))))
 
 (defn reset-wallet
   []
@@ -53,42 +46,50 @@
       (Thread/sleep 1000)
       (reset-wallet))))
 
-(defn buy-all
-  []
+(defn show-hand
+  "buy or sell"
+  [type]
+  (when-not (contains? event-types type)
+    (throw (Exception. (str "event type: " type " ERROR!"))))
   (let [before {:money (:cny my-wallet)
                 :btc (:btc my-wallet)}]
     (try
-      (let [re (utils/buy-market huobi-access-key huobi-secret-key (int (:money before)))]
+      (let [re (case type
+                 "buy" (utils/buy-market huobi-access-key huobi-secret-key (:money before))
+                 "sell" (utils/sell-market huobi-access-key huobi-secret-key (:btc before)))]
         (log/debug re)
         (reset-wallet)
         (if (= "success" (:result re))
-          (do (utils/write-a-map (buy-event-model (utils/get-readable-time (System/currentTimeMillis))
-                                                  (:money before)
-                                                  (:btc before)
-                                                  (:cny my-wallet)
-                                                  (:btc my-wallet)
-                                                  true)
+          (do (utils/write-a-map (event-model type
+                                              (utils/get-readable-time (System/currentTimeMillis))
+                                              (:money before)
+                                              (:btc before)
+                                              (:cny my-wallet)
+                                              (:btc my-wallet)
+                                              true)
                                  (str events-dir "/events.log"))
-            {:id (:id re)
+              {:id (:id re)
              :success true})
-          (do (utils/write-a-map (buy-event-model (utils/get-readable-time (System/currentTimeMillis))
-                                                  (:money before)
-                                                  (:btc before)
-                                                  (:cny my-wallet)
-                                                  (:btc my-wallet)
-                                                  false)
+          (do (utils/write-a-map (event-model type
+                                              (utils/get-readable-time (System/currentTimeMillis))
+                                              (:money before)
+                                              (:btc before)
+                                              (:cny my-wallet)
+                                              (:btc my-wallet)
+                                              false)
                                  (str events-dir "/events.log"))
               {:info re
                :success false})))
       (catch Exception e
         (log/error e)
         (reset-wallet)
-        (utils/write-a-map (buy-event-model (utils/get-readable-time (System/currentTimeMillis))
-                                            (:money before)
-                                            (:btc before)
-                                            (:cny my-wallet)
-                                            (:btc my-wallet)
-                                            false)
+        (utils/write-a-map (event-model type
+                                        (utils/get-readable-time (System/currentTimeMillis))
+                                        (:money before)
+                                        (:btc before)
+                                        (:cny my-wallet)
+                                        (:btc my-wallet)
+                                        false)
                            (str events-dir "/events.log"))
         {:info (.toString e)
          :success false}))))
