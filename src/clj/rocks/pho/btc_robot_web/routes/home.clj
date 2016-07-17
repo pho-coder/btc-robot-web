@@ -31,5 +31,4 @@
   (GET "/" [] (home-page))
   (GET "/about" [] (about-page))
   (GET "/buy-all" [code] (buy-all code))
-  (GET "sell-all" [code] (sell-all code)))
-
+  (GET "/sell-all" [code] (sell-all code)))
