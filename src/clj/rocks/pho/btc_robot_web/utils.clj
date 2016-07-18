@@ -102,6 +102,46 @@
                                                            :sign sign}}))
                    :key-fn keyword)))
 
+(defn loan-btc
+  "load now"
+  [access-key secret-key amount]
+  (let [unix-time (int (/ (System/currentTimeMillis) 1000))
+        sign-str (str "access_key=" access-key
+                      "&amount=" amount
+                      "&created=" unix-time
+                      "&loan_type=2"
+                      "&method=load"
+                      "&secret_key=" secret-key)
+        sign (digest/md5 sign-str)]
+    (json/read-str (:body (http-client/post "https://api.huobi.com/apiv3"
+                                            {:headers {"Content-Type" "application/x-www-form-urlencoded"}
+                                             :form-params {:method "load"
+                                                           :access_key access-key
+                                                           :amount amount
+                                                           :loan_type 2
+                                                           :created unix-time
+                                                           :sign sign}})))))
+
+(defn repay-btc
+  "repay btc"
+  [access-key secret-key loan-id amount]
+  (let [unix-time (int (/ (System/currentTimeMillis) 1000))
+        sign-str (str "access_key=" access-key
+                      "&amount=" amount
+                      "&created=" unix-time
+                      "&loan_id=" loan-id
+                      "&method=repayment"
+                      "&secret_key=" secret-key)
+        sign (digest/md5 sign-str)]
+    (json/read-str (:body (http-client/post "https://api.huobi.com/apiv3"
+                                            {:headers {"Content-Type" "application/x-www-form-urlencoded"}
+                                             :form-params {:method "repayment"
+                                                           :access_key access-key
+                                                           :loan_id load-id
+                                                           :amount amount
+                                                           :created unix-time
+                                                           :sign sign}})))))
+
 (defn write-a-map
   "write a map append to a file"
   [a-map a-file]

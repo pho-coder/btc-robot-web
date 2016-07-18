@@ -38,6 +38,7 @@
   (try
     (let [account-info (utils/get-account-info huobi-access-key
                                                huobi-secret-key)]
+      (log/debug account-info)
       (mount/start-with {#'my-wallet {:cny (Float/parseFloat (:available_cny_display account-info))
                                       :btc (Float/parseFloat (:available_btc_display account-info))}})
       (log/info my-wallet))
