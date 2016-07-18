@@ -115,7 +115,7 @@
         sign (digest/md5 sign-str)]
     (json/read-str (:body (http-client/post "https://api.huobi.com/apiv3"
                                             {:headers {"Content-Type" "application/x-www-form-urlencoded"}
-                                             :form-params {:method "load"
+                                             :form-params {:method "loan"
                                                            :access_key access-key
                                                            :amount amount
                                                            :loan_type 2
