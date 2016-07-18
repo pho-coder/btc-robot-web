@@ -20,7 +20,7 @@
                         :loan-btc nil})
 
 (mount/defstate last-loan-id
-                :start nil)
+                :start "")
 
 (mount/defstate event-types
                 :start #{"buy" "sell"})
