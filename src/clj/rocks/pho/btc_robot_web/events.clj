@@ -16,9 +16,14 @@
 
 (mount/defstate my-wallet
                 :start {:cny nil
-                        :btc nil})
+                        :btc nil
+                        :loan-btc nil})
 
-(mount/defstate event-types :start #{"buy" "sell"})
+(mount/defstate last-loan-id
+                :start nil)
+
+(mount/defstate event-types
+                :start #{"buy" "sell"})
 
 (defn event-model
   "buy, sell event model"
@@ -40,7 +45,8 @@
                                                huobi-secret-key)]
       (log/debug account-info)
       (mount/start-with {#'my-wallet {:cny (Float/parseFloat (:available_cny_display account-info))
-                                      :btc (Float/parseFloat (:available_btc_display account-info))}})
+                                      :btc (Float/parseFloat (:available_btc_display account-info))
+                                      :loan-btc (Float/parseFloat (:loan_btc_display account-info))}})
       (log/info my-wallet))
     (catch Exception e
       (log/error e)

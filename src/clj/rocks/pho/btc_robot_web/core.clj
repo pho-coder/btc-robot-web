@@ -48,10 +48,10 @@
                         mount/start-with-args
                         :started)]
     (log/info component "started"))
-  (log/info env)
+  (log/debug env)
   (log/debug "access key:" events/huobi-access-key)
   (log/debug "secret key:" events/huobi-secret-key)
-  (log/info "events dir:" events/events-dir)
+  (log/debug "events dir:" events/events-dir)
   (events/reset-wallet)
   (.addShutdownHook (Runtime/getRuntime) (Thread. stop-app)))
 
