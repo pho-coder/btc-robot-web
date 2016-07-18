@@ -18,17 +18,39 @@
 (defn buy-all [code]
   (layout/render
    "buy.html" (if (= code "7")
-                {:success (:success (events/show-hand "buy"))}
+                (let [re (events/show-hand "buy")]
+                  {:success (:success re)
+                   :info (:info re)})
                 {:success "error"})))
 
 (defn sell-all [code]
   (layout/render
    "sell.html" (if (= code "7")
-                 {:success (:success (events/show-hand "sell"))}
+                 (let [re (events/show-hand "sell")]
+                   {:success (:success re)
+                    :info (:info re)})
                  {:success "error"})))
+
+(defn loan-all [code]
+  (layout/render
+   "loan.html" (if (= code "7")
+                 (let [re (events/lever-btc "loan")]
+                   {:success (:success re)
+                    :info (:info re)})
+                 {:success "error"})))
+
+(defn repay-all [code]
+  (layout/render
+   "repay.html" (if (= code "7")
+                  (let [re (events/lever-btc "repay")]
+                    {:success (:success re)
+                     :info (:info re)})
+                  {:success "error"})))
 
 (defroutes home-routes
   (GET "/" [] (home-page))
   (GET "/about" [] (about-page))
   (GET "/buy-all" [code] (buy-all code))
-  (GET "/sell-all" [code] (sell-all code)))
+  (GET "/sell-all" [code] (sell-all code))
+  (GET "/loan-all" [code] (loan-all code))
+  (GET "/repay-all" [code] (repay-all code)))
