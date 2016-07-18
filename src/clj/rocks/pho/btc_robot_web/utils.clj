@@ -137,7 +137,7 @@
                                             {:headers {"Content-Type" "application/x-www-form-urlencoded"}
                                              :form-params {:method "repayment"
                                                            :access_key access-key
-                                                           :loan_id load-id
+                                                           :loan_id loan-id
                                                            :amount amount
                                                            :created unix-time
                                                            :sign sign}})))))
