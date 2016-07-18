@@ -113,7 +113,9 @@
                                               my-wallet
                                               true)
                                  (str events-dir "/events.log"))
-              (mount/start-with {#'last-loan-id (:id re)})
+              (when (= type "loan")
+                (mount/start-with {#'last-loan-id (:id re)})
+                (log/info "loan id:" (:id re)))
               {:info (str "id: " (:id re))
                :success true})
           (do (utils/write-a-map (event-model type
