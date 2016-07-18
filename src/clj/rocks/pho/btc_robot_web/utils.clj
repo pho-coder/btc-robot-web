@@ -103,14 +103,14 @@
                    :key-fn keyword)))
 
 (defn loan-btc
-  "load now"
+  "loan now"
   [access-key secret-key amount]
   (let [unix-time (int (/ (System/currentTimeMillis) 1000))
         sign-str (str "access_key=" access-key
                       "&amount=" amount
                       "&created=" unix-time
                       "&loan_type=2"
-                      "&method=load"
+                      "&method=loan"
                       "&secret_key=" secret-key)
         sign (digest/md5 sign-str)]
     (json/read-str (:body (http-client/post "https://api.huobi.com/apiv3"
