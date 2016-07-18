@@ -59,8 +59,8 @@
   (let [before-wallet my-wallet]
     (try
       (let [re (case type
-                 "buy" (utils/buy-market huobi-access-key huobi-secret-key (:cny before))
-                 "sell" (utils/sell-market huobi-access-key huobi-secret-key (:btc before)))]
+                 "buy" (utils/buy-market huobi-access-key huobi-secret-key (:cny before-wallet))
+                 "sell" (utils/sell-market huobi-access-key huobi-secret-key (:btc before-wallet)))]
         (log/debug re)
         (Thread/sleep 3000)
         (reset-wallet)
@@ -102,7 +102,7 @@
     (try
       (let [re (case type
                  "loan" (utils/loan-btc huobi-access-key huobi-secret-key 1)
-                 "repay" (utils/repay-btc huobi-access-key huobi-secret-key last-loan-id (:loan-btc before)))]
+                 "repay" (utils/repay-btc huobi-access-key huobi-secret-key last-loan-id (:loan-btc before-wallet)))]
         (log/debug re)
         (Thread/sleep 3000)
         (reset-wallet)
