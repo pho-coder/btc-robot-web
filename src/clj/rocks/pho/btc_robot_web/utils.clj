@@ -61,6 +61,52 @@
                                                            :sign sign}}))
                    :key-fn keyword)))
 
+(defn buy
+  "buy by price & amount"
+  [access-key secret-key amount price]
+  (let [unix-time (int (/ (System/currentTimeMillis) 1000))
+        sign-str (str "access_key=" access-key
+                      "&amount=" amount
+                      "&coin_type=1"
+                      "&created=" unix-time
+                      "&method=buy"
+                      "&price=" price
+                      "&secret_key=" secret-key)
+        sign (digest/md5 sign-str)]
+    (json/read-str (:body (http-client/post "https://api.huobi.com/apiv3"
+                                            {:headers {"Content-Type" "application/x-www-form-urlencoded"}
+                                             :form-params {:method "buy"
+                                                           :access_key access-key
+                                                           :coin_type 1
+                                                           :price price
+                                                           :amount amount
+                                                           :created unix-time
+                                                           :sign sign}}))
+                   :key-fn keyword)))
+
+(defn sell
+  "sell by price & amount"
+  [access-key secret-key amount price]
+  (let [unix-time (int (/ (System/currentTimeMillis) 1000))
+        sign-str (str "access_key=" access-key
+                      "&amount=" amount
+                      "&coin_type=1"
+                      "&created=" unix-time
+                      "&method=sell"
+                      "&price=" price
+                      "&secret_key=" secret-key)
+        sign (digest/md5 sign-str)]
+    (json/read-str (:body (http-client/post "https://api.huobi.com/apiv3"
+                                            {:headers {"Content-Type" "application/x-www-form-urlencoded"}
+                                             :form-params {:method "sell"
+                                                           :access_key access-key
+                                                           :coin_type 1
+                                                           :price price
+                                                           :amount amount
+                                                           :created unix-time
+                                                           :sign sign}}))
+                   :key-fn keyword)))
+
 (defn buy-market
   "buy now"
   [access-key secret-key amount]

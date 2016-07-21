@@ -51,6 +51,8 @@
       (Thread/sleep 1000)
       (reset-wallet))))
 
+
+
 (defn show-hand
   "buy or sell"
   [type]
