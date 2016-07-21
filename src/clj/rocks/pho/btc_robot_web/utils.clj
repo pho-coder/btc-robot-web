@@ -17,8 +17,9 @@
                                       10 1000
                                       13 1
                                       (throw (Exception. (str long-time " length error!"))))))
-        f (format-time/formatter-local "yyyy-MM-dd HH:mm:ss")]
-    (format-time/unparse f t)))
+        tz (clj-time.core/from-time-zone t (clj-time.core/time-zone-for-offset -8))
+        f (format-time/formatter "yyyy-MM-dd HH:mm:ss")]
+    (format-time/unparse f tz)))
 
 (defn get-staticmarket
   "get realtime market"
@@ -120,7 +121,8 @@
                                                            :amount amount
                                                            :loan_type 2
                                                            :created unix-time
-                                                           :sign sign}})))))
+                                                           :sign sign}}))
+                   :key-fn keyword)))
 
 (defn repay-btc
   "repay btc"
@@ -140,7 +142,8 @@
                                                            :loan_id loan-id
                                                            :amount amount
                                                            :created unix-time
-                                                           :sign sign}})))))
+                                                           :sign sign}}))
+                   :key-fn keyword)))
 
 (defn write-a-map
   "write a map append to a file"
