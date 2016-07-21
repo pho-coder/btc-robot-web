@@ -34,7 +34,7 @@
 (defn loan-all [code]
   (layout/render
    "loan.html" (if (= code "7")
-                 (let [re (events/lever-btc "loan")]
+                 (let [re (events/lever-btc "loan" 1)]
                    {:success (:success re)
                     :info (:info re)})
                  {:success "error"})))
@@ -42,7 +42,7 @@
 (defn repay-all [code]
   (layout/render
    "repay.html" (if (= code "7")
-                  (let [re (events/lever-btc "repay")]
+                  (let [re (events/lever-btc "repay" 1)]
                     {:success (:success re)
                      :info (:info re)})
                   {:success "error"})))

@@ -95,14 +95,14 @@
 
 (defn lever-btc
   "loan or repay"
-  [type]
+  [type amount]
   (when-not (contains? #{"loan" "repay"} type)
     (throw (Exception. (str "event type: " type " ERROR!"))))
   (let [before-wallet my-wallet]
     (try
       (let [re (case type
-                 "loan" (utils/loan-btc huobi-access-key huobi-secret-key 1)
-                 "repay" (utils/repay-btc huobi-access-key huobi-secret-key last-loan-id (:loan-btc before-wallet)))]
+                 "loan" (utils/loan-btc huobi-access-key huobi-secret-key amount)
+                 "repay" (utils/repay-btc huobi-access-key huobi-secret-key last-loan-id amount))]
         (log/debug re)
         (Thread/sleep 3000)
         (reset-wallet)
