@@ -62,7 +62,7 @@
                    :key-fn keyword)))
 
 (defn buy
-  "buy by price & amount"
+  "buy by amount & price"
   [access-key secret-key amount price]
   (let [unix-time (int (/ (System/currentTimeMillis) 1000))
         sign-str (str "access_key=" access-key
@@ -85,7 +85,7 @@
                    :key-fn keyword)))
 
 (defn sell
-  "sell by price & amount"
+  "sell by amount & price"
   [access-key secret-key amount price]
   (let [unix-time (int (/ (System/currentTimeMillis) 1000))
         sign-str (str "access_key=" access-key

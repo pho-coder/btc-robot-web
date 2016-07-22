@@ -23,16 +23,16 @@
                 :start "")
 
 (mount/defstate event-types
-                :start #{"buy" "sell" "loan" "repay"})
+                :start #{"buy" "sell" "loan" "repay" "balance"})
 
 (defn event-model
   "buy, sell event model"
-  [type time before-wallet after-wallet success?]
+  [type before-wallet after-wallet success?]
   (if (contains? event-types type)
     {:type type
      :before before-wallet
      :after after-wallet
-     :time time
+     :time (utils/get-readable-time (System/currentTimeMillis))
      :success success?}
     (throw (Exception. (str "event type: " type " ERROR!")))))
 
@@ -51,10 +51,81 @@
       (Thread/sleep 1000)
       (reset-wallet))))
 
+(defn log-event
+  [event]
+  (utils/write-a-map event (str events-dir "/events.log")))
 
+(defn balance-wallet
+  []
+  (try
+    (let [before-wallet my-wallet
+          account-info (utils/get-account-info huobi-access-key
+                                               huobi-secret-key)
+          cny (Float/parseFloat (:available_cny_display account-info))
+          btc (Float/parseFloat (:available_btc_display account-info))
+          loan-btc (Float/parseFloat (:loan_btc_display account-info))]
+      (if (or (not= cny (:cny before-wallet))
+              (not= btc (:btc before-wallet))
+              (not= loan-btc (:loan-btc before-wallet)))
+        (do (mount/start-with {#'my-wallet {:cny cny
+                                            :btc btc
+                                            :loan-btc loan-btc}})
+            (log-event (event-model "balance"
+                                    before-wallet
+                                    {:cny cny
+                                     :btc btc
+                                     :loan-btc loan-btc}
+                                    true))
+            (log/info "balance wallet: " my-wallet))))
+    (catch Exception e
+      (log/error "balance wallet:" e)
+      (Thread/sleep 1000)
+      (balance-wallet))))
+
+(defn one-deal
+  "buy or sell by amount & price"
+  [type amount price]
+  (when-not (contains? #{"buy" "sell"} type)
+    (throw (Exception. (str "event type: " type " ERROR!"))))
+  (let [before-wallet my-wallet]
+    (try
+      (let [re (case type
+                 "buy" (utils/buy huobi-access-key
+                                  huobi-secret-key
+                                  amount
+                                  price)
+                 "sell" (utils/sell huobi-access-key
+                                    huobi-secret-key
+                                    amount
+                                    price))]
+        (log/debug re)
+        (Thread/sleep 2000)
+        (reset-wallet)
+        (if (= "success" (:result re))
+          (do (log-event (event-model type
+                                      before-wallet
+                                      my-wallet
+                                      true))
+              {:info (str "id: " (:id re))
+               :success true})
+          (do (log-event (event-model type
+                                      before-wallet
+                                      my-wallet
+                                      false))
+              {:info re
+               :success false})))
+      (catch Exception e
+        (log/error e)
+        (reset-wallet)
+        (log-event (event-model type
+                                before-wallet
+                                my-wallet
+                                false))
+        {:info (.toString e)
+         :success false}))))
 
 (defn show-hand
-  "buy or sell"
+  "buy or sell all"
   [type]
   (when-not (contains? #{"buy" "sell"} type)
     (throw (Exception. (str "event type: " type " ERROR!"))))
@@ -67,31 +138,25 @@
         (Thread/sleep 3000)
         (reset-wallet)
         (if (= "success" (:result re))
-          (do (utils/write-a-map (event-model type
-                                              (utils/get-readable-time (System/currentTimeMillis))
-                                              before-wallet
-                                              my-wallet
-                                              true)
-                                 (str events-dir "/events.log"))
+          (do (log-event (event-model type
+                                      before-wallet
+                                      my-wallet
+                                      true))
               {:info (str "id: " (:id re))
                :success true})
-          (do (utils/write-a-map (event-model type
-                                              (utils/get-readable-time (System/currentTimeMillis))
-                                              before-wallet
-                                              my-wallet
-                                              false)
-                                 (str events-dir "/events.log"))
+          (do (log-event (event-model type
+                                      before-wallet
+                                      my-wallet
+                                      false))
               {:info re
                :success false})))
       (catch Exception e
         (log/error e)
         (reset-wallet)
-        (utils/write-a-map (event-model type
-                                        (utils/get-readable-time (System/currentTimeMillis))
-                                        before-wallet
-                                        my-wallet
-                                        false)
-                           (str events-dir "/events.log"))
+        (log-event (event-model type
+                                before-wallet
+                                my-wallet
+                                false))
         {:info (.toString e)
          :success false}))))
 
@@ -109,33 +174,27 @@
         (Thread/sleep 3000)
         (reset-wallet)
         (if (= "success" (:result re))
-          (do (utils/write-a-map (event-model type
-                                              (utils/get-readable-time (System/currentTimeMillis))
-                                              before-wallet
-                                              my-wallet
-                                              true)
-                                 (str events-dir "/events.log"))
+          (do (log-event (event-model type
+                                      before-wallet
+                                      my-wallet
+                                      true))
               (when (= type "loan")
                 (mount/start-with {#'last-loan-id (:id re)})
                 (log/info "loan id:" (:id re)))
               {:info (str "id: " (:id re))
                :success true})
-          (do (utils/write-a-map (event-model type
-                                              (utils/get-readable-time (System/currentTimeMillis))
-                                              before-wallet
-                                              my-wallet
-                                              false)
-                                 (str events-dir "/events.log"))
+          (do (log-event (event-model type
+                                      before-wallet
+                                      my-wallet
+                                      false))
               {:info re
                :success false})))
       (catch Exception e
         (log/error e)
         (reset-wallet)
-        (utils/write-a-map (event-model type
-                                        (utils/get-readable-time (System/currentTimeMillis))
-                                        before-wallet
-                                        my-wallet
-                                        false)
-                           (str events-dir "/events.log"))
+        (log-event (event-model type
+                                before-wallet
+                                my-wallet
+                                false))
         {:info (.toString e)
          :success false}))))

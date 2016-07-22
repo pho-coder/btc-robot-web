@@ -15,6 +15,26 @@
 (defn about-page []
   (layout/render "about.html"))
 
+(defn buy [code amount price]
+  (layout/render
+   "buy.html" (if (= code "7")
+                (let [re (events/one-deal "buy"
+                                          (Float/parseFloat amount)
+                                          (Float/parseFloat price))]
+                  {:success (:success re)
+                   :info (:info re)})
+                {:success "error"})))
+
+(defn sell [code amount price]
+  (layout/render
+   "sell.html" (if (= code "7")
+                 (let [re (events/one-deal "sell"
+                                           (Float/parseFloat amount)
+                                           (Float/parseFloat price))]
+                   {:success (:success re)
+                    :info (:info re)})
+                 {:success "error"})))
+
 (defn buy-all [code]
   (layout/render
    "buy.html" (if (= code "7")
@@ -50,6 +70,8 @@
 (defroutes home-routes
   (GET "/" [] (home-page))
   (GET "/about" [] (about-page))
+  (GET "/buy" [code amount price] (buy code amount price))
+  (GET "/sell" [code amount price] (sell code amount price))
   (GET "/buy-all" [code] (buy-all code))
   (GET "/sell-all" [code] (sell-all code))
   (GET "/loan-all" [code] (loan-all code))
