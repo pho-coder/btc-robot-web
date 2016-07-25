@@ -42,6 +42,55 @@
        :vol vol
        :last last})))
 
+(defn get-kline
+  "get kline 001 005 ..."
+  [type]
+  (let [url (case type
+              "001" (str "http://api.huobi.com/staticmarket/btc_kline_" type "_json.js")
+              "005" (str "http://api.huobi.com/staticmarket/btc_kline_" type "_json.js")
+              "015" (str "http://api.huobi.com/staticmarket/btc_kline_" type "_json.js")
+              "030" (str "http://api.huobi.com/staticmarket/btc_kline_" type "_json.js")
+              "060" (str "http://api.huobi.com/staticmarket/btc_kline_" type "_json.js")
+              "100" (str "http://api.huobi.com/staticmarket/btc_kline_" type "_json.js")
+              (throw (Exception. "kline type error: " type)))]
+    (json/read-str (:body (http-client/get url))
+                   :key-fn keyword)))
+
+(defn parse-kline-data
+  "parse kline data from array to map"
+  [data]
+  (let [datetime (nth data 0)
+        start-price (bigdec (nth data 1))
+        top-price (bigdec (nth data 2))
+        low-price (bigdec (nth data 3))
+        end-price (bigdec (nth data 4))
+        volume (bigdec (nth data 5))
+        end-diff-price (- end-price start-price)
+        max-diff-price (- top-price low-price)]
+    {:datetime (str (.substring datetime 0 4)
+                    "-"
+                    (.substring datetime 4 6)
+                    "-"
+                    (.substring datetime 6 8)
+                    " "
+                    (.substring datetime 8 10)
+                    ":"
+                    (.substring datetime 10 12))
+     :start-price start-price
+     :top-price top-price
+     :low-price low-price
+     :end-price end-price
+     :volume volume
+     :end-diff-price end-diff-price
+     :end-diff-price-rate (with-precision 4 (/ end-diff-price start-price))
+     :max-diff-price max-diff-price
+     :max-diff-price-rate (with-precision 4 (/ max-diff-price low-price))
+     :trend (cond
+              (< end-diff-price 0) "down"
+              (> end-diff-price 0) "up"
+              (== end-diff-price 0) "flat"
+              :else (throw (Exception. "end-diff-price error!")))}))
+
 (defn get-account-info
   "get account info"
   [access_key secret_key]
