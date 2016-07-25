@@ -74,7 +74,18 @@
 
 (defn down-up-point?
   [a-kline up-times-top down-times-low]
-  )
+  (let [re (recently-continued-times a-kline)]
+    (if (and (= "up" (:trend re))
+             (<= (:times re) up-times-top))
+      (if (>= (- (.size a-kline) (:times re))
+              down-times-low)
+        (let [re (recently-continued-times (take (- (.size a-kline) (:times re))
+                                                 a-kline))]
+          (if (and (= "down" (:trend re))
+                   (>= (:times re) down-times-low))
+            ))
+        false)
+      false)))
 
 (defn simulate-a-history-kline
   [a-history-kline times]
