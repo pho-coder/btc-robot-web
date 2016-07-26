@@ -39,8 +39,12 @@
 (mount/defstate log
                 :start (logger/init (:log-config env)))
 
-(mount/defstate watch-timer
-                :start (timer/mk-timer))
+(mount/defstate ^{:on-reload :noop}
+                watch-timer
+                :start
+                (timer/mk-timer)
+                :stop
+                (timer/cancel-timer watch-timer))
 
 (defn stop-app []
   (doseq [component (:stopped (mount/stop))]
