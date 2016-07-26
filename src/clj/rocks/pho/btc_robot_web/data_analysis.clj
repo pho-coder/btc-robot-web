@@ -43,7 +43,9 @@
                     :end-time (:datetime last-kline)
                     :start-time (:datetime last-kline)
                     :start-price (:start-price last-kline)
-                    :end-price (:end-price last-kline)})
+                    :end-price (:end-price last-kline)
+                    :diff-price (- (:end-price last-kline)
+                                   (:start-price last-kline))})
             (let [trend (trend? (:trend r)
                                 (:trend last-kline))]
               (if (= trend "other")
@@ -54,7 +56,9 @@
                         :end-time (:datetime r)
                         :start-time (:datetime last-kline)
                         :start-price (:start-price last-kline)
-                        :end-price (:end-price r)})))))))))
+                        :end-price (:end-price r)
+                        :diff-price (- (:end-price r)
+                                       (:start-price last-kline))})))))))))
 
 (defn buy-point?
   [a-kline times]
@@ -73,21 +77,28 @@
       false)))
 
 (defn down-up-point?
-  [a-kline up-times-top down-times-low]
+  "a-kline : a kline
+   down-times-least : down times at least
+   down-price-least : down price diff at least
+   up-times-most : up times at most
+   up-price-least : up price diff at least"
+  [a-kline down-times-least down-price-least up-times-most up-price-least]
   (let [re (recently-continued-times a-kline)]
     (if (and (= "up" (:trend re))
-             (<= (:times re) up-times-top))
+             (<= (:times re) up-times-most)
+             (>= (:diff-price re) up-price-least))
       (if (>= (- (.size a-kline) (:times re))
-              down-times-low)
+              down-times-least)
         (let [re (recently-continued-times (take (- (.size a-kline) (:times re))
                                                  a-kline))]
           (if (and (= "down" (:trend re))
-                   (>= (:times re) down-times-low))
-            ))
+                   (>= (:times re) down-times-least)
+                   (<= (:diff-price re) down-price-least))
+            true))
         false)
       false)))
 
-(defn simulate-a-history-kline
+(defn analysis-a-history-kline-normal
   [a-history-kline times]
   (let [size (.size a-history-kline)]
     (loop [index 1
@@ -104,4 +115,25 @@
                                      (do (prn "sell point: " re)
                                          (recur (inc index) "cny"))
                                      (recur (inc index) status))
+            :else (recur (inc index) status)))))))
+
+(defn analysis-a-history-kline-down-up-point
+  [a-history-kline down-times-least down-price-least up-times-most up-price-least]
+  (let [size (.size a-history-kline)]
+    (loop [index 1
+           status "cny"]
+      (if (<= index size)
+        (let [a-kline (take index a-history-kline)
+              re (recently-continued-times a-kline)]
+          (cond
+            (down-up-point? a-kline down-times-least down-price-least up-times-most up-price-least)
+            (if (= status "cny")
+              (do (prn "buy point: " re)
+                  (recur (inc index) "btc"))
+              (recur (inc index) status))
+            (sell-point? a-kline 1)
+            (if (= status "btc")
+              (do (prn "sell point: " re)
+                  (recur (inc index) "cny"))
+              (recur (inc index) status))
             :else (recur (inc index) status)))))))

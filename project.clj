@@ -27,7 +27,8 @@
                  [clj-http "3.1.0"]
                  [org.clojure/data.json "0.2.6"]
                  [clj-time "0.12.0"]
-                 [digest "1.4.4"]]
+                 [digest "1.4.4"]
+                 [com.jd.bdp.magpie/magpie-utils "0.1.4-SNAPSHOT"]]
 
   :min-lein-version "2.0.0"
 

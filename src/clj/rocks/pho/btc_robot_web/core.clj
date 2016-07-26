@@ -5,10 +5,12 @@
             [clojure.tools.logging :as log]
             [luminus.logger :as logger]
             [mount.core :as mount]
+            [com.jd.bdp.magpie.util.timer :as timer]
 
             [rocks.pho.btc-robot-web.handler :as handler]
             [rocks.pho.btc-robot-web.config :refer [env]]
-            [rocks.pho.btc-robot-web.events :as events])
+            [rocks.pho.btc-robot-web.events :as events]
+            [rocks.pho.btc-robot-web.watcher :as watcher])
   (:gen-class))
 
 (def cli-options
@@ -53,6 +55,7 @@
   (log/debug "secret key:" events/huobi-secret-key)
   (log/debug "events dir:" events/events-dir)
   (events/reset-wallet)
+  (timer/schedule-recurring (timer/mk-timer) 10 3 watcher/watch-once)
   (.addShutdownHook (Runtime/getRuntime) (Thread. stop-app)))
 
 (defn -main [& args]
