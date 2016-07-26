@@ -8,7 +8,20 @@
 (mount/defstate history-dir
                 :start (:history-dir (:btc-robot env)))
 
-(defn watch-once
-  "watch once"
+(mount/defstate kline
+                :start (list))
+
+(defn kline-watcher
+  "kline watcher"
   []
-  (log/info history-dir))
+  (try
+    (mount/start-with {#'kline })
+    (catch Exception e
+      (log/error "kline watcher ERROR:" e))))
+
+(defn chance-watcher
+  "chance watcher"
+  []
+  (try
+    (catch Exception e
+      (log/error "cheance watcher ERROR:" e))))

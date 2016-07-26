@@ -7,9 +7,11 @@
   return:
   {:trend \"up\" or \"down\"
    :times 10
-   :datetime \"2016-07-01 13:13\" - lastest time
+   :start-time \"2016-07-01 13:13\" - lastest time
    :start-price 12.2M
-   :end-price 13.2M}"
+   :end-time 
+   :end-price 13.2M
+   :diff-price 1M}"
   [recently-klines]
   (let [klines (reverse (map #(utils/parse-kline-data %) recently-klines))
         trend? (fn [r-trend last-trend]

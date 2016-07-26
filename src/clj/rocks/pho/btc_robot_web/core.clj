@@ -40,11 +40,18 @@
                 :start (logger/init (:log-config env)))
 
 (mount/defstate ^{:on-reload :noop}
-                watch-timer
+                chance-timer
                 :start
                 (timer/mk-timer)
                 :stop
-                (timer/cancel-timer watch-timer))
+                (timer/cancel-timer chance-timer))
+
+(mount/defstate ^{:on-reload :noop}
+                kline-timer
+                :start
+                (timer/mk-timer)
+                :stop
+                (timer/cancel-timer kline-timer))
 
 (defn stop-app []
   (doseq [component (:stopped (mount/stop))]
@@ -62,7 +69,8 @@
   (log/debug "secret key:" events/huobi-secret-key)
   (log/debug "events dir:" events/events-dir)
   (events/reset-wallet)
-  (timer/schedule-recurring watch-timer 10 3 watcher/watch-once)
+  (timer/schedule-recurring kline-timer 5 25 watcher/kline-watcher)
+  (timer/schedule-recurring chance-timer 10 3 watcher/chance-watcher)
   (.addShutdownHook (Runtime/getRuntime) (Thread. stop-app)))
 
 (defn -main [& args]
