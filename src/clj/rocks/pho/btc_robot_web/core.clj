@@ -39,6 +39,9 @@
 (mount/defstate log
                 :start (logger/init (:log-config env)))
 
+(mount/defstate watch-timer
+                :start (timer/mk-timer))
+
 (defn stop-app []
   (doseq [component (:stopped (mount/stop))]
     (log/info component "stopped"))
@@ -55,7 +58,7 @@
   (log/debug "secret key:" events/huobi-secret-key)
   (log/debug "events dir:" events/events-dir)
   (events/reset-wallet)
-  (timer/schedule-recurring (timer/mk-timer) 10 3 watcher/watch-once)
+  (timer/schedule-recurring watch-timer 10 3 watcher/watch-once)
   (.addShutdownHook (Runtime/getRuntime) (Thread. stop-app)))
 
 (defn -main [& args]
