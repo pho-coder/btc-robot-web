@@ -91,8 +91,8 @@
              (>= (:diff-price re) up-price-least))
       (if (>= (- (.size a-kline) (:times re))
               down-times-least)
-        (let [re (recently-continued-times (take (- (.size a-kline) (:times re))
-                                                 a-kline))]
+        (let [re (recently-continued-times (drop-last (:times re)
+                                                      a-kline))]
           (if (and (= "down" (:trend re))
                    (>= (:times re) down-times-least)
                    (<= (:diff-price re) down-price-least))

@@ -53,6 +53,7 @@
 
 (defn log-event
   [event]
+  (log/info event)
   (utils/write-a-map event (str events-dir "/events.log")))
 
 (defn balance-wallet
