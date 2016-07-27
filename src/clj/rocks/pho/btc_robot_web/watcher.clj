@@ -14,7 +14,7 @@
                 :start (list))
 
 (mount/defstate status
-                :start "")
+                :start "cny")
 
 (mount/defstate last-check-datetime
                 :start "")
