@@ -84,10 +84,10 @@
    down-price-least : down price diff at least
    up-times-most : up times at most
    up-price-least : up price diff at least"
-  [a-kline down-times-least down-price-least up-times-most up-price-least]
+  [a-kline down-times-least down-price-least up-times-least up-price-least]
   (let [re (recently-continued-times a-kline)]
     (if (and (= "up" (:trend re))
-             (<= (:times re) up-times-most)
+             (>= (:times re) up-times-least)
              (>= (:diff-price re) up-price-least))
       (if (>= (- (.size a-kline) (:times re))
               down-times-least)
@@ -120,17 +120,19 @@
             :else (recur (inc index) status)))))))
 
 (defn analysis-a-history-kline-down-up-point
-  [a-history-kline down-times-least down-price-least up-times-most up-price-least]
+  [a-history-kline down-times-least down-price-least up-times-least up-price-least]
   (let [size (.size a-history-kline)]
     (loop [index 1
            status "cny"]
       (if (<= index size)
         (let [a-kline (take index a-history-kline)
-              re (recently-continued-times a-kline)]
+              re (recently-continued-times a-kline)
+              re2 (recently-continued-times (drop-last (:times re)
+                                                       a-kline))]
           (cond
-            (down-up-point? a-kline down-times-least down-price-least up-times-most up-price-least)
+            (down-up-point? a-kline down-times-least down-price-least up-times-least up-price-least)
             (if (= status "cny")
-              (do (prn "buy point: " re)
+              (do (prn "buy point: " re re2)
                   (recur (inc index) "btc"))
               (recur (inc index) status))
             (sell-point? a-kline 1)
