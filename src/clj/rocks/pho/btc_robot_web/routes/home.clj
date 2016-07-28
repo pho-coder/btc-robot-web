@@ -67,6 +67,10 @@
                      :info (:info re)})
                   {:success "error"})))
 
+(defn stop []
+  (layout/render
+   "about.html" (System/exit 0)))
+
 (defroutes home-routes
   (GET "/" [] (home-page))
   (GET "/about" [] (about-page))
@@ -75,4 +79,5 @@
   (GET "/buy-all" [code] (buy-all code))
   (GET "/sell-all" [code] (sell-all code))
   (GET "/loan-all" [code] (loan-all code))
-  (GET "/repay-all" [code] (repay-all code)))
+  (GET "/repay-all" [code] (repay-all code))
+  (GET "/stop" [] (stop)))
