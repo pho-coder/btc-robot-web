@@ -10,7 +10,8 @@
             [rocks.pho.btc-robot-web.handler :as handler]
             [rocks.pho.btc-robot-web.config :refer [env]]
             [rocks.pho.btc-robot-web.events :as events]
-            [rocks.pho.btc-robot-web.watcher :as watcher])
+            [rocks.pho.btc-robot-web.watcher :as watcher]
+            [rocks.pho.btc-robot-web.utils :as utils])
   (:gen-class))
 
 (def cli-options

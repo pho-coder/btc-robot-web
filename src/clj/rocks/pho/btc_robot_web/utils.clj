@@ -21,7 +21,7 @@
          f (format-time/formatter fm)]
      (format-time/unparse f tz)))
   ([long-time]
-   (get-readable-time longptime "yyyy-MM-dd HH:mm:ss")))
+   (get-readable-time long-time "yyyy-MM-dd HH:mm:ss")))
 
 (defn get-staticmarket
   "get realtime market"
