@@ -6,20 +6,22 @@
             [digest :as digest]))
 
 (defn get-readable-time
-  "get now yyyy-MM-dd HH:mm:ss"
-  [long-time]
-  (let [t (coerce-time/from-long (* (condp = (type long-time)
-                                      String (Long/parseLong long-time)
-                                      Long long-time
-                                      Integer long-time
-                                      (throw (Exception. (str long-time " type: " (type long-time) " NOT Long or String!"))))
-                                    (case (.length (str long-time))
-                                      10 1000
-                                      13 1
-                                      (throw (Exception. (str long-time " length error!"))))))
-        tz (clj-time.core/from-time-zone t (clj-time.core/time-zone-for-offset -8))
-        f (format-time/formatter "yyyy-MM-dd HH:mm:ss")]
-    (format-time/unparse f tz)))
+  "get readable time default format yyyy-MM-dd HH:mm:ss"
+  ([long-time fm]
+   (let [t (coerce-time/from-long (* (condp = (type long-time)
+                                       String (Long/parseLong long-time)
+                                       Long long-time
+                                       Integer long-time
+                                       (throw (Exception. (str long-time " type: " (type long-time) " NOT Long or String!"))))
+                                     (case (.length (str long-time))
+                                       10 1000
+                                       13 1
+                                       (throw (Exception. (str long-time " length error!"))))))
+         tz (clj-time.core/from-time-zone t (clj-time.core/time-zone-for-offset -8))
+         f (format-time/formatter fm)]
+     (format-time/unparse f tz)))
+  ([long-time]
+   (get-readable-time longptime "yyyy-MM-dd HH:mm:ss")))
 
 (defn get-staticmarket
   "get realtime market"
@@ -240,10 +242,10 @@
                                                            :sign sign}}))
                    :key-fn keyword)))
 
-(defn write-a-map
-  "write a map append to a file"
-  [a-map a-file]
-  (spit a-file (str (json/write-str a-map) "\n") :append true))
+(defn write-a-object
+  "write a object append to a file"
+  [a-object a-file]
+  (spit a-file (str (json/write-str a-object) "\n") :append true))
 
 (defn read-a-json-file
   "read a json file by filter"

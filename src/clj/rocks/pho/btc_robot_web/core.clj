@@ -68,9 +68,17 @@
   (log/debug "access key:" events/huobi-access-key)
   (log/debug "secret key:" events/huobi-secret-key)
   (log/debug "events dir:" events/events-dir)
+  (when-not (.exists (clojure.java.io/as-file watcher/history-dir))
+    (log/error "history dir:" watcher/history-dir "NOT EXISTS!")
+    (stop-app))
+  (when-not (.exists (clojure.java.io/as-file events/events-dir))
+    (log/error "events dir:" events/events-dir "NOT EXISTS!"))
+  (mount/start-with {#'watcher/history-log (str watcher/history-dir "/klines.log." (utils/get-readable-time (System/currentTimeMillis) "yyyy-MM-dd_HH:mm:ss"))})
+  (log/debug "klines history log:" watcher/history-log)
+  (.createNewFile (clojure.java.io/as-file watcher/history-log))
   (events/reset-wallet)
   (timer/schedule-recurring kline-timer 5 25 watcher/kline-watcher)
-  (timer/schedule-recurring chance-timer 10 3 watcher/chance-watcher)
+ ; (timer/schedule-recurring chance-timer 10 3 watcher/chance-watcher)
   (.addShutdownHook (Runtime/getRuntime) (Thread. stop-app)))
 
 (defn -main [& args]

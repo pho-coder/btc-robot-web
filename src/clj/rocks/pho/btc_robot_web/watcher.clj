@@ -10,6 +10,9 @@
 (mount/defstate history-dir
                 :start (:history-dir (:btc-robot env)))
 
+(mount/defstate history-log
+                :start "")
+
 (mount/defstate kline
                 :start (list))
 
@@ -19,11 +22,36 @@
 (mount/defstate last-check-datetime
                 :start "")
 
+(mount/defstate last-kline-log-datetime
+                :start "")
+
+(defn find-kline-datetime
+  "return -1 : not found
+           n : find at index n"
+  [a-kline datetime]
+  (if (= last-kline-log-datetime "")
+    -1
+    (loop [index 0]
+      (if (>= index (.size a-kline))
+        -1
+        (let [dt (first (nth a-kline index))]
+          (if (= dt datetime)
+            index
+            (recur (inc index))))))))
+
 (defn kline-watcher
   "kline watcher"
   []
   (try
-    (mount/start-with {#'kline (utils/get-kline "001")})
+    (let [fixed-klines (drop-last (utils/get-kline "001"))
+          found-index (find-kline-datetime fixed-klines
+                                           last-kline-log-datetime)
+          new-klines (nthrest fixed-klines (inc found-index))]
+      (when-not (empty? new-klines)
+        (doseq [kline new-klines]
+          (utils/write-a-object kline history-log))
+        (mount/start-with {#'kline fixed-klines})
+        (mount/start-with {#'last-kline-log-datetime (first (last fixed-klines))})))
     (catch Exception e
       (log/error "kline watcher ERROR:" e))))
 
