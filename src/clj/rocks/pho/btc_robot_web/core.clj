@@ -74,7 +74,7 @@
     (stop-app))
   (when-not (.exists (clojure.java.io/as-file events/events-dir))
     (log/error "events dir:" events/events-dir "NOT EXISTS!"))
-  (mount/start-with {#'watcher/history-log (str watcher/history-dir "/klines.log." (utils/get-readable-time (System/currentTimeMillis) "yyyy-MM-dd_HH:mm:ss"))})
+  (mount/start-with {#'watcher/history-log (str watcher/history-dir "/klines.log." (utils/get-readable-time (System/currentTimeMillis) "yyyy-MM-dd_HH-mm-ss"))})
   (log/debug "klines history log:" watcher/history-log)
   (.createNewFile (clojure.java.io/as-file watcher/history-log))
   (events/reset-wallet)
