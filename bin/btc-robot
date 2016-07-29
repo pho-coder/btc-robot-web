@@ -69,6 +69,7 @@ function stop_server() {
         done
         echo "Stop btc-robot successfully." 
         rm $PID_FILE
+        exit 0
 }
 
 function status(){
