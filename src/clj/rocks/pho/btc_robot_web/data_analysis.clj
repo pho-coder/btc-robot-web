@@ -87,7 +87,7 @@
   "a-kline : a kline
    down-times-least : down times at least
    down-price-least : down price diff at least
-   up-times-most : up times at most
+   up-times-least : up times at least
    up-price-least : up price diff at least"
   [a-kline down-times-least down-price-least up-times-least up-price-least]
   (let [re (recently-continued-times a-kline)]

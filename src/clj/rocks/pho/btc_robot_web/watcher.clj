@@ -55,6 +55,16 @@
     (catch Exception e
       (log/error "kline watcher ERROR:" e))))
 
+(mount/defstate buy-point
+                :start {:down-times-least 3M
+                        :down-price-least -1M
+                        :up-times-least 1M
+                        :up-price-least 1M})
+
+(mount/defstate sell-point
+                :start {:down-times-least 1M
+                        :down-price-least -0.7M})
+
 (defn chance-watcher
   "chance watcher"
   []
@@ -63,11 +73,17 @@
           lastest-datetime (first (last kline))]
       (when (not= lastest-datetime last-check-datetime)
         (case status
-          "cny" (when (da/down-up-point? kline 3 -1 1 1) ;; buy point
+          "cny" (when (da/down-up-point? kline
+                                         (:down-times-least buy-point)
+                                         (:down-price-least buy-point)
+                                         (:up-times-least buy-point)
+                                         (:up-price-least buy-point)) ;; buy point
                   (events/balance-wallet)
                   (when (:success (events/show-hand "buy"))
                     (mount/start-with {#'status "btc"})))
-          "btc" (when (da/sell-point? kline 1 -0.7)  ;; sell point
+          "btc" (when (da/sell-point? kline
+                                      (:down-times-least sell-point)
+                                      (:down-price-least sell-point)) ;; sell point
                   (events/balance-wallet)
                   (when (:success (events/show-hand "sell"))
                     (mount/start-with {#'status "cny"})))

@@ -1,5 +1,65 @@
 {% extends "base.html" %}
 {% block content %}
+  <div class="row">
+    <div class="span12">
+      <form method="POST" action="/buy-point">
+        {% csrf-field %}
+        <p>
+          down times least:
+          <input class="form-control"
+                 type="string"
+                 name="down-times-least"
+                 value="{{buy-point-down-times-least}}" />
+        </p>
+        <p>
+          down price least:
+          <input class="form-control"
+                 type="string"
+                 name="down-price-least"
+                 value="{{buy-point-down-price-least}}" />
+        </p>
+        <p>
+          up times least:
+          <input class="form-control"
+                 type="string"
+                 name="up-times-least"
+                 value="{{buy-point-up-times-least}}" />
+        </p>
+        <p>
+          up price least:
+          <input class="form-control"
+                 type="string"
+                 name="up-price-least"
+                 value="{{buy-point-up-price-least}}" />
+        </p>
+        <input type="submit" class="btn btn-primary" value="modify" />
+      </form>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="span12">
+      <form method="POST" action="/sell-point">
+        {% csrf-field %}
+        <p>
+          down times least:
+          <input class="form-control"
+                 type="string"
+                 name="down-times-least"
+                 value="{{sell-point-down-times-least}}" />
+        </p>
+        <p>
+          down price least:
+          <input class="form-control"
+                 type="string"
+                 name="down-price-least"
+                 value="{{sell-point-down-price-least}}" />
+        </p>
+        <input type="submit" class="btn btn-primary" value="modify" />
+      </form>
+    </div>
+  </div>
+
   <div>
     {{staticmarket|json|safe}}
   </div>
