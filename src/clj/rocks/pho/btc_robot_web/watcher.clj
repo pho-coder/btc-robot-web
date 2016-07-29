@@ -67,7 +67,7 @@
                   (events/balance-wallet)
                   (when (:success (events/show-hand "buy"))
                     (mount/start-with {#'status "btc"})))
-          "btc" (when (da/sell-point? kline 1)  ;; sell point
+          "btc" (when (da/sell-point? kline 1 -0.7)  ;; sell point
                   (events/balance-wallet)
                   (when (:success (events/show-hand "sell"))
                     (mount/start-with {#'status "cny"})))

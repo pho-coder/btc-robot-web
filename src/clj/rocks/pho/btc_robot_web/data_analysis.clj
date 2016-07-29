@@ -74,10 +74,11 @@
       false)))
 
 (defn sell-point?
-  [a-kline times]
+  [a-kline down-times-least & [down-price-least]]
   (let [re (recently-continued-times a-kline)]
     (if (and (= "down" (:trend re))
-             (>= (:times re) times))
+             (>= (:times re) down-times-least)
+             (<= (:diff-price re) (or down-price-least 0)))
       (do (log/info "down re:" re)
         true)
       false)))
