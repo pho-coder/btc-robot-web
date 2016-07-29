@@ -10,7 +10,7 @@
 (mount/defstate history-dir
                 :start (:history-dir (:btc-robot env)))
 
-(mount/defstate history-log
+(mount/defstate history-log-file
                 :start "")
 
 (mount/defstate kline
@@ -49,7 +49,7 @@
           new-klines (nthrest fixed-klines (inc found-index))]
       (when-not (empty? new-klines)
         (doseq [kline new-klines]
-          (utils/write-a-object kline history-log))
+          (utils/write-a-object kline history-log-file))
         (mount/start-with {#'kline fixed-klines})
         (mount/start-with {#'last-kline-log-datetime (first (last fixed-klines))})))
     (catch Exception e

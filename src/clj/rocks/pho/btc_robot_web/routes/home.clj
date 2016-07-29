@@ -10,7 +10,8 @@
   (layout/render
    "home.html" {:docs (-> "docs/docs.md" io/resource slurp)
                 :staticmarket (utils/get-staticmarket)
-                :my-wallet events/my-wallet}))
+                :my-wallet events/my-wallet
+                :events (utils/read-a-json-file events/events-log-file)}))
 
 (defn about-page []
   (layout/render "about.html"))

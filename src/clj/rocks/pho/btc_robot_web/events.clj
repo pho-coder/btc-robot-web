@@ -14,6 +14,9 @@
 (mount/defstate events-dir
                 :start (:events-dir (:btc-robot env)))
 
+(mount/defstate events-log-file
+                :start "")
+
 (mount/defstate my-wallet
                 :start {:cny nil
                         :btc nil
@@ -54,7 +57,7 @@
 (defn log-event
   [event]
   (log/info event)
-  (utils/write-a-object event (str events-dir "/events.log")))
+  (utils/write-a-object event events-log-file))
 
 (defn balance-wallet
   []
