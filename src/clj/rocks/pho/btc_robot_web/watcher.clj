@@ -63,13 +63,11 @@
           lastest-datetime (first (last kline))]
       (when (not= lastest-datetime last-check-datetime)
         (case status
-          "cny" (when (da/down-up-point? kline 3 1 1 1) ;; buy point
-                  (log/info (da/recently-continued-times kline))
+          "cny" (when (da/down-up-point? kline 3 -1 1 1) ;; buy point
                   (events/balance-wallet)
                   (when (:success (events/show-hand "buy"))
                     (mount/start-with {#'status "btc"})))
           "btc" (when (da/sell-point? kline 1)  ;; sell point
-                  (log/info (da/recently-continued-times kline))
                   (events/balance-wallet)
                   (when (:success (events/show-hand "sell"))
                     (mount/start-with {#'status "cny"})))

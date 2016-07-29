@@ -1,5 +1,7 @@
 (ns rocks.pho.btc-robot-web.data-analysis
-  (:require [rocks.pho.btc-robot-web.utils :as utils]))
+  (:require [clojure.tools.logging :as log]
+
+            [rocks.pho.btc-robot-web.utils :as utils]))
 
 (defn recently-continued-times
   "recently continured times
@@ -55,7 +57,7 @@
                 (recur (pop kls)
                        {:trend trend
                         :times (inc (:times r))
-                        :end-time (:datetime r)
+                        :end-time (:end-time r)
                         :start-time (:datetime last-kline)
                         :start-price (:start-price last-kline)
                         :end-price (:end-price r)
@@ -67,7 +69,8 @@
   (let [re (recently-continued-times a-kline)]
     (if (and (= "up" (:trend re))
              (>= (:times re) times))
-      true
+      (do (log/info "up re:" re)
+        true)
       false)))
 
 (defn sell-point?
@@ -75,7 +78,8 @@
   (let [re (recently-continued-times a-kline)]
     (if (and (= "down" (:trend re))
              (>= (:times re) times))
-      true
+      (do (log/info "down re:" re)
+        true)
       false)))
 
 (defn down-up-point?
@@ -91,12 +95,15 @@
              (>= (:diff-price re) up-price-least))
       (if (>= (- (.size a-kline) (:times re))
               down-times-least)
-        (let [re (recently-continued-times (drop-last (:times re)
-                                                      a-kline))]
-          (if (and (= "down" (:trend re))
-                   (>= (:times re) down-times-least)
-                   (<= (:diff-price re) down-price-least))
-            true))
+        (let [re1 (recently-continued-times (drop-last (:times re)
+                                                       a-kline))]
+          (if (and (= "down" (:trend re1))
+                   (>= (:times re1) down-times-least)
+                   (<= (:diff-price re1) down-price-least))
+            (do (log/info "up re:" re)
+                (log/info "down re:" re1)
+              true)
+            false))
         false)
       false)))
 
