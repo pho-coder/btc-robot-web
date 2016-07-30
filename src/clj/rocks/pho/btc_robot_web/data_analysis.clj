@@ -80,8 +80,9 @@
              (>= (:times re) down-times-least)
              (<= (:diff-price re) (or down-price-least 0)))
       (do (log/info "down re:" re)
-        true)
-      false)))
+          {:suitable? true
+           :down-diff-price (:diff-price re)})
+      {:suitable? false})))
 
 (defn down-up-point?
   "a-kline : a kline
@@ -101,12 +102,14 @@
           (if (and (= "down" (:trend re1))
                    (>= (:times re1) down-times-least)
                    (<= (:diff-price re1) down-price-least))
-            (do (log/info "up re:" re)
-                (log/info "down re:" re1)
-              true)
-            false))
-        false)
-      false)))
+            (do (log/info "down re:" re1)
+                (log/info "up re:" re)
+                {:suitable? true
+                 :down-diff-price (:diff-price re1)
+                 :up-diff-price (:diff-price re)})
+            {:suitable? false}))
+        {:suitable? false})
+      {:suitable? false})))
 
 (defn analysis-a-history-kline-normal
   [a-history-kline times]
@@ -143,7 +146,7 @@
               (do (prn "buy point: " re re2)
                   (recur (inc index) "btc"))
               (recur (inc index) status))
-            (sell-point? a-kline 1)
+            (sell-point? a-kline 1 -0.7)
             (if (= status "btc")
               (do (prn "sell point: " re)
                   (recur (inc index) "cny"))

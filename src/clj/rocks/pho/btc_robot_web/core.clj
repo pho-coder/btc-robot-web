@@ -81,8 +81,8 @@
     (log/debug "events log:" events/events-log-file)
     (.createNewFile (clojure.java.io/as-file events/events-log-file)))
   (events/reset-wallet)
-  (timer/schedule-recurring kline-timer 5 25 watcher/kline-watcher)
-  (timer/schedule-recurring chance-timer 10 3 watcher/chance-watcher)
+  (timer/schedule-recurring kline-timer 5 17 watcher/kline-watcher)
+  (timer/schedule-recurring chance-timer 7 3 watcher/chance-watcher)
   (.addShutdownHook (Runtime/getRuntime) (Thread. stop-app)))
 
 (defn -main [& args]
