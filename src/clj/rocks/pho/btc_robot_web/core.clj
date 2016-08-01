@@ -81,6 +81,8 @@
     (log/debug "events log:" events/events-log-file)
     (.createNewFile (clojure.java.io/as-file events/events-log-file)))
   (events/reset-wallet)
+  (mount/start-with {#'watcher/start-net-asset (bigdec (:net_asset (utils/get-account-info events/huobi-access-key
+                                                                                           events/huobi-secret-key)))})
   (timer/schedule-recurring kline-timer 1 17 watcher/kline-watcher)
   (timer/schedule-recurring chance-timer 7 3 watcher/chance-watcher)
   (.addShutdownHook (Runtime/getRuntime) (Thread. stop-app)))

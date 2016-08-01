@@ -61,6 +61,9 @@
                         :up-times-least 1M
                         :up-price-least 1M})
 
+(mount/defstate start-net-asset
+                :start 0M)
+
 (mount/defstate net-asset
                 :start 0M)
 
@@ -111,7 +114,9 @@
                     (log/info "net asset diff:" (- net-asset-now net-asset))
                     (events/balance-wallet)
                     (when (:success (events/show-hand "sell"))
-                      (mount/start-with {#'status "cny"}))))
+                      (mount/start-with {#'status "cny"})
+                      (log/info "now net-asset-diff:" (- net-asset-now
+                                                         start-net-asset)))))
           (throw (Exception. (str "status error: " status))))
         (mount/start-with {#'last-check-datetime lastest-datetime})))
     (catch Exception e
