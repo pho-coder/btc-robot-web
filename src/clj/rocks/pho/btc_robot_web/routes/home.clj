@@ -14,6 +14,8 @@
    "home.html" {:docs (-> "docs/docs.md" io/resource slurp)
                 :staticmarket (utils/get-staticmarket)
                 :my-wallet events/my-wallet
+                :net-asset-diff (- watcher/net-asset
+                                   watcher/start-net-asset)
                 :events (utils/read-a-json-file events/events-log-file)
                 :buy-point-down-times-least (:down-times-least watcher/buy-point)
                 :buy-point-down-price-least (:down-price-least watcher/buy-point)
