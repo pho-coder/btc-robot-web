@@ -115,4 +115,4 @@
           (throw (Exception. (str "status error: " status))))
         (mount/start-with {#'last-check-datetime lastest-datetime})))
     (catch Exception e
-      (log/error "cheance watcher ERROR:" e))))
+      (log/error "chance watcher ERROR:" e))))
