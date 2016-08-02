@@ -98,7 +98,7 @@
   (home-page))
 
 (defn reset-all []
-  (mount/start-with {#'watcher/reset-all true})
+ (mount/start-with {#'watcher/reset-all (true? true)})
   (response/found "/"))
 
 (defroutes home-routes
