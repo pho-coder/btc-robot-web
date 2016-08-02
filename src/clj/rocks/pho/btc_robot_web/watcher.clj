@@ -72,7 +72,7 @@
                         :down-price-least -0.7M})
 
 (mount/defstate reset-all
-                :start true)
+                :start false)
 
 (mount/defstate start-price
                 :start 0M)

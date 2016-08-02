@@ -67,6 +67,7 @@
   (log/debug env)
   (log/debug "access key:" events/huobi-access-key)
   (log/debug "secret key:" events/huobi-secret-key)
+  (watcher/init)
   (timer/schedule-recurring kline-timer 1 17 watcher/kline-watcher)
   (timer/schedule-recurring chance-timer 7 3 watcher/chance-watcher)
   (.addShutdownHook (Runtime/getRuntime) (Thread. stop-app)))
