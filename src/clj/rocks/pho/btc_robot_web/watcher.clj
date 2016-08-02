@@ -71,10 +71,41 @@
                 :start {:down-times-least 1M
                         :down-price-least -0.7M})
 
+(mount/defstate reset-all
+                :start true)
+
+(mount/defstate start-price
+                :start 0M)
+
+(defn init
+  "init state"
+  []
+  (let [now (utils/get-readable-time (System/currentTimeMillis) "yyyy-MM-dd_HH-mm-ss")]
+    (when-not (.exists (clojure.java.io/as-file history-dir))
+      (log/error "history dir:" history-dir "NOT EXISTS!")
+      false)
+    (when-not (.exists (clojure.java.io/as-file events/events-dir))
+      (log/error "events dir:" events/events-dir "NOT EXISTS!")
+      false)
+    (mount/start-with {#'history-log-file (str history-dir "/klines.log." now)})
+    (log/debug "klines history log:" history-log-file)
+    (.createNewFile (clojure.java.io/as-file history-log-file))
+    (mount/start-with {#'events/events-log-file (str events/events-dir "/events.log." now)})
+    (log/debug "events log:" events/events-log-file)
+    (.createNewFile (clojure.java.io/as-file events/events-log-file)))
+  (events/reset-wallet)
+  (mount/start-with {#'start-net-asset (bigdec (:net_asset (utils/get-account-info events/huobi-access-key
+                                                                                           events/huobi-secret-key)))})
+  (mount/start-with {#'start-price (:last (utils/get-staticmarket))})
+  (mount/start-with {#'reset-all false}))
+
 (defn chance-watcher
   "chance watcher"
   []
   (try
+    (when (and reset-all
+               (= status "cny"))
+      (init))
     (let [kline kline
           lastest-kline (last kline)
           lastest-datetime (first lastest-kline)

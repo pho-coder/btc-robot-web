@@ -14,6 +14,8 @@
    "home.html" {:docs (-> "docs/docs.md" io/resource slurp)
                 :staticmarket (utils/get-staticmarket)
                 :my-wallet events/my-wallet
+                :price-diff (- (:last (utils/get-staticmarket))
+                               watcher/start-price)
                 :net-asset-diff (- watcher/net-asset
                                    watcher/start-net-asset)
                 :events (utils/read-a-json-file events/events-log-file)
@@ -95,6 +97,10 @@
                                            :down-price-least down-price-least}})
   (home-page))
 
+(defn reset-all []
+  (mount/start-with {#'watcher/reset-all true})
+  (response/found "/"))
+
 (defroutes home-routes
   (GET "/" [] (home-page))
   (GET "/about" [] (about-page))
@@ -106,4 +112,5 @@
   (GET "/repay-all" [code] (repay-all code))
   (GET "/stop" [] (stop))
   (POST "/buy-point" [down-times-least down-price-least up-times-least up-price-least] (modify-buy-point down-times-least down-price-least up-times-least up-price-least))
-  (POST "/sell-point" [down-times-least down-price-least] (modify-sell-point down-times-least down-price-least)))
+  (POST "/sell-point" [down-times-least down-price-least] (modify-sell-point down-times-least down-price-least))
+  (GET "/reset-all" [] (reset-all)))

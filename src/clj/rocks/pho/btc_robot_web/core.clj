@@ -10,8 +10,7 @@
             [rocks.pho.btc-robot-web.handler :as handler]
             [rocks.pho.btc-robot-web.config :refer [env]]
             [rocks.pho.btc-robot-web.events :as events]
-            [rocks.pho.btc-robot-web.watcher :as watcher]
-            [rocks.pho.btc-robot-web.utils :as utils])
+            [rocks.pho.btc-robot-web.watcher :as watcher])
   (:gen-class))
 
 (def cli-options
@@ -68,21 +67,6 @@
   (log/debug env)
   (log/debug "access key:" events/huobi-access-key)
   (log/debug "secret key:" events/huobi-secret-key)
-  (let [now (utils/get-readable-time (System/currentTimeMillis) "yyyy-MM-dd_HH-mm-ss")]
-    (when-not (.exists (clojure.java.io/as-file watcher/history-dir))
-      (log/error "history dir:" watcher/history-dir "NOT EXISTS!")
-      (stop-app))
-    (when-not (.exists (clojure.java.io/as-file events/events-dir))
-      (log/error "events dir:" events/events-dir "NOT EXISTS!"))
-    (mount/start-with {#'watcher/history-log-file (str watcher/history-dir "/klines.log." now)})
-    (log/debug "klines history log:" watcher/history-log-file)
-    (.createNewFile (clojure.java.io/as-file watcher/history-log-file))
-    (mount/start-with {#'events/events-log-file (str events/events-dir "/events.log." now)})
-    (log/debug "events log:" events/events-log-file)
-    (.createNewFile (clojure.java.io/as-file events/events-log-file)))
-  (events/reset-wallet)
-  (mount/start-with {#'watcher/start-net-asset (bigdec (:net_asset (utils/get-account-info events/huobi-access-key
-                                                                                           events/huobi-secret-key)))})
   (timer/schedule-recurring kline-timer 1 17 watcher/kline-watcher)
   (timer/schedule-recurring chance-timer 7 3 watcher/chance-watcher)
   (.addShutdownHook (Runtime/getRuntime) (Thread. stop-app)))
