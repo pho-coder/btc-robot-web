@@ -90,12 +90,12 @@
                                           :down-price-least (bigdec down-price-least)
                                           :up-times-least (bigdec up-times-least)
                                           :up-price-least (bigdec up-price-least)}})
-  (home-page))
+  (response/found "/"))
 
 (defn modify-sell-point [down-times-least down-price-least]
   (mount/start-with {#'watcher/sell-point {:down-times-least down-times-least
                                            :down-price-least down-price-least}})
-  (home-page))
+  (response/found "/"))
 
 (defn reset-all []
  (mount/start-with {#'watcher/reset-all (true? true)})

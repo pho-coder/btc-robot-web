@@ -60,6 +60,14 @@
     </div>
   </div>
 
+  <br>
+  <div>
+    <a href="{{servlet-context}}/reset-all"
+       class="btn btn-primary">
+      reset all
+    </a>
+  </div>
+  <br>
   <div>
     {{staticmarket|json|safe}}
   </div>
@@ -67,10 +75,10 @@
     {{my-wallet|json|safe}}
   </div>
   <div>
-    {{net-asset-diff|json|safe}}
+    net asset diff: {{net-asset-diff|json|safe}}
   </div>
   <div>
-    {{price-diff|json|safe}}
+    price diff: {{price-diff|json|safe}}
   </div>
   <div>
     {{events|json|safe}}
