@@ -93,8 +93,8 @@
   (response/found "/"))
 
 (defn modify-sell-point [down-times-least down-price-least]
-  (mount/start-with {#'watcher/sell-point {:down-times-least down-times-least
-                                           :down-price-least down-price-least}})
+  (mount/start-with {#'watcher/sell-point {:down-times-least (bigdec down-times-least)
+                                           :down-price-least (bigdec down-price-least)}})
   (response/found "/"))
 
 (defn reset-all []
