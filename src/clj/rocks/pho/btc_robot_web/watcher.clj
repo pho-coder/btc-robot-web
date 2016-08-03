@@ -8,22 +8,22 @@
             [rocks.pho.btc-robot-web.events :as events]))
 
 (mount/defstate history-dir
-                :start (:history-dir (:btc-robot env)))
+  :start (:history-dir (:btc-robot env)))
 
 (mount/defstate history-log-file
-                :start "")
+  :start "")
 
 (mount/defstate kline
-                :start (list))
+  :start (list))
 
 (mount/defstate status
-                :start "cny")
+  :start "cny")
 
 (mount/defstate last-check-datetime
-                :start "")
+  :start "")
 
 (mount/defstate last-kline-log-datetime
-                :start "")
+  :start "")
 
 (defn find-kline-datetime
   "return -1 : not found
@@ -55,27 +55,31 @@
     (catch Exception e
       (log/error "kline watcher ERROR:" e))))
 
-(mount/defstate buy-point
-                :start {:down-times-least 3M
-                        :down-price-least -1M
-                        :up-times-least 1M
-                        :up-price-least 1M})
+(mount/defstate down-up-point
+  :start {:down-times-least 3M
+          :down-price-least -1M
+          :up-times-least 1M
+          :up-price-least 1M})
+
+(mount/defstate up-point
+  :start {:up-times-least 2M
+          :up-price-least 1M})
 
 (mount/defstate start-net-asset
-                :start 0M)
+  :start 0M)
 
 (mount/defstate net-asset
-                :start 0M)
+  :start 0M)
 
-(mount/defstate sell-point
-                :start {:down-times-least 1M
-                        :down-price-least -0.7M})
+(mount/defstate down-point
+  :start {:down-times-least 1M
+          :down-price-least -0.7M})
 
 (mount/defstate reset-all
-                :start (true? false))
+  :start (true? false))
 
 (mount/defstate start-price
-                :start 0M)
+  :start 0M)
 
 (defn init
   "init state"
@@ -93,9 +97,9 @@
     (.createNewFile (clojure.java.io/as-file events/events-log-file)))
   (events/reset-wallet)
   (mount/start-with {#'start-net-asset (bigdec (:net_asset (utils/get-account-info events/huobi-access-key
-                                                                                           events/huobi-secret-key)))})
- (mount/start-with {#'start-price (:last (utils/get-staticmarket))})
- (mount/start-with {#'reset-all (true? false)}))
+                                                                                   events/huobi-secret-key)))})
+  (mount/start-with {#'start-price (:last (utils/get-staticmarket))})
+  (mount/start-with {#'reset-all (true? false)}))
 
 (defn chance-watcher
   "chance watcher"
@@ -110,14 +114,16 @@
           lastest-end-price (bigdec (nth lastest-kline 4))]
       (when (not= lastest-datetime last-check-datetime)
         (case status
-          "cny" (let [re (da/down-up-point? kline
-                                            (:down-times-least buy-point)
-                                            (:down-price-least buy-point)
-                                            (:up-times-least buy-point)
-                                            (:up-price-least buy-point))]  ;; fixed history klines buy point
-                  (when (:suitable? re)
-                    (let [down-diff-price (:down-diff-price re)
-                          up-diff-price (:up-diff-price re)]
+          "cny" (let [down-up-re (da/down-up-point? kline
+                                                    (:down-times-least down-up-point)
+                                                    (:down-price-least down-up-point)
+                                                    (:up-times-least down-up-point)
+                                                    (:up-price-least down-up-point))  ;; fixed history klines down up point
+                      down-up-buy? (atom false)
+                      up-buy? (atom false)]
+                  (when (:suitable? down-up-re)
+                    (let [down-diff-price (:down-diff-price down-up-re)
+                          up-diff-price (:up-diff-price down-up-re)]
                       (let [last-price (bigdec (:last (utils/get-staticmarket)))
                             diff-now (- last-price lastest-end-price)
                             lastest-top-price-diff (+ down-diff-price
@@ -126,26 +132,48 @@
                             lastest-bottom-price-diff (+ up-diff-price diff-now)]
                         (when (and (<= lastest-top-price-diff -0.5M) ;; don't touch lastest top price
                                    (>= lastest-bottom-price-diff 0.5M)) ;; don't touch lastest bottom price
-                          (events/balance-wallet)
-                          (when (:success (events/show-hand "buy"))
-                            (mount/start-with {#'status "btc"})
-                            (mount/start-with {#'net-asset (bigdec (:net_asset (utils/get-account-info events/huobi-access-key
-                                                                                                       events/huobi-secret-key)))})))))))
-          "btc" (let [re (da/sell-point? kline
-                                         (:down-times-least sell-point)
-                                         (:down-price-least sell-point))  ;; fixed history klines sell point
+                          (reset! down-up-buy? true)
+                          (log/info "D-U-BUY")))))
+                  (when-not @down-up-buy?
+                    (let [up-re (da/up-point? kline
+                                              (:up-times-least up-point)
+                                              (:up-price-least up-point))]
+                      (when (:suitable? up-re)
+                        (let [last-price (bigdec (:last (utils/get-staticmarket)))]
+                          (when (> last-price (:end-price up-re))  ;; up history and up now
+                            (reset! up-buy? true)
+                            (log/info "U-BUY"))))))
+                  (when (or @down-up-buy?
+                            @up-buy?)
+                    (events/balance-wallet)
+                    (when (:success (events/show-hand "buy"))
+                      (mount/start-with {#'status "btc"})
+                      (mount/start-with {#'net-asset (bigdec (:net_asset (utils/get-account-info events/huobi-access-key
+                                                                                                 events/huobi-secret-key)))}))))
+          "btc" (let [re (da/down-point? kline
+                                         (:down-times-least down-point)
+                                         (:down-price-least down-point))  ;; fixed history klines sell point
                       net-asset-now (bigdec (:net_asset (utils/get-account-info events/huobi-access-key
-                                                                                events/huobi-secret-key)))]
+                                                                                events/huobi-secret-key)))
+                      history-sell? (atom false)
+                      net-asset-sell? (atom false)]
                   (when (> net-asset-now net-asset)
                     (mount/start-with {#'net-asset net-asset-now}))  ;; fix top price
-                  (when (or (:suitable? re)
-                            (<= (- net-asset-now net-asset) -3M))
-                    (log/info "net asset diff:" (- net-asset-now net-asset))
+                  (when (:suitable? re)
+                    (let [last-end-price (:end-price re)
+                          last-price (bigdec (:last (utils/get-staticmarket)))]
+                      (when (< last-price last-end-price)  ;; down history & down now
+                        (reset! history-sell? true)
+                        (log/info "H-SELL"))))
+                  (when-not @history-sell?
+                    (when (<= (- net-asset-now net-asset) -3M)  ;;  net asset down
+                      (reset! net-asset-sell? true)
+                      (log/info "N-SELL")))
+                  (when (or @history-sell?
+                            @net-asset-sell?)
                     (events/balance-wallet)
                     (when (:success (events/show-hand "sell"))
-                      (mount/start-with {#'status "cny"})
-                      (log/info "now net-asset-diff:" (- net-asset-now
-                                                         start-net-asset)))))
+                      (mount/start-with {#'status "cny"}))))
           (throw (Exception. (str "status error: " status))))
         (mount/start-with {#'last-check-datetime lastest-datetime})))
     (catch Exception e

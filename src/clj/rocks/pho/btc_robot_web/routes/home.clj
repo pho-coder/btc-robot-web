@@ -19,12 +19,14 @@
                 :net-asset-diff (- watcher/net-asset
                                    watcher/start-net-asset)
                 :events (utils/read-a-json-file events/events-log-file)
-                :buy-point-down-times-least (:down-times-least watcher/buy-point)
-                :buy-point-down-price-least (:down-price-least watcher/buy-point)
-                :buy-point-up-times-least (:up-times-least watcher/buy-point)
-                :buy-point-up-price-least (:up-price-least watcher/buy-point)
-                :sell-point-down-times-least (:down-times-least watcher/sell-point)
-                :sell-point-down-price-least (:down-price-least watcher/sell-point)}))
+                :down-up-point-down-times-least (:down-times-least watcher/down-up-point)
+                :down-up-point-down-price-least (:down-price-least watcher/down-up-point)
+                :down-up-point-up-times-least (:up-times-least watcher/down-up-point)
+                :down-up-point-up-price-least (:up-price-least watcher/down-up-point)
+                :up-point-up-times-least (:up-times-least watcher/up-point)
+                :up-point-up-price-least (:up-price-least watcher/up-point)
+                :down-point-down-times-least (:down-times-least watcher/down-point)
+                :down-point-down-price-least (:down-price-least watcher/down-point)}))
 
 (defn about-page []
   (layout/render "about.html"))
@@ -85,20 +87,24 @@
   (layout/render
    "about.html" (System/exit 0)))
 
-(defn modify-buy-point [down-times-least down-price-least up-times-least up-price-least]
-  (mount/start-with {#'watcher/buy-point {:down-times-least (bigdec down-times-least)
-                                          :down-price-least (bigdec down-price-least)
-                                          :up-times-least (bigdec up-times-least)
-                                          :up-price-least (bigdec up-price-least)}})
+(defn modify-down-up-point [down-times-least down-price-least up-times-least up-price-least]
+  (mount/start-with {#'watcher/down-up-point {:down-times-least (bigdec down-times-least)
+                                              :down-price-least (bigdec down-price-least)
+                                              :up-times-least (bigdec up-times-least)
+                                              :up-price-least (bigdec up-price-least)}})
   (response/found "/"))
 
-(defn modify-sell-point [down-times-least down-price-least]
-  (mount/start-with {#'watcher/sell-point {:down-times-least (bigdec down-times-least)
+(defn modify-up-point [up-times-least up-price-least]
+  (mount/start-with {#'watcher/up-point {:up-times-least (bigdec up-times-least)
+                                         :up-price-least (bigdec up-price-least)}}))
+
+(defn modify-down-point [down-times-least down-price-least]
+  (mount/start-with {#'watcher/down-point {:down-times-least (bigdec down-times-least)
                                            :down-price-least (bigdec down-price-least)}})
   (response/found "/"))
 
 (defn reset-all []
- (mount/start-with {#'watcher/reset-all (true? true)})
+  (mount/start-with {#'watcher/reset-all (true? true)})
   (response/found "/"))
 
 (defroutes home-routes
@@ -111,6 +117,7 @@
   (GET "/loan-all" [code] (loan-all code))
   (GET "/repay-all" [code] (repay-all code))
   (GET "/stop" [] (stop))
-  (POST "/buy-point" [down-times-least down-price-least up-times-least up-price-least] (modify-buy-point down-times-least down-price-least up-times-least up-price-least))
-  (POST "/sell-point" [down-times-least down-price-least] (modify-sell-point down-times-least down-price-least))
+  (POST "/down-up-point" [down-times-least down-price-least up-times-least up-price-least] (modify-down-up-point down-times-least down-price-least up-times-least up-price-least))
+  (POST "up-point" [up-times-least up-price-least] (modify-up-point up-times-least up-price-least))
+  (POST "/down-point" [down-times-least down-price-least] (modify-down-point down-times-least down-price-least))
   (GET "/reset-all" [] (reset-all)))

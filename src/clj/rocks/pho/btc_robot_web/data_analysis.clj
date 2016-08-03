@@ -64,16 +64,19 @@
                         :diff-price (- (:end-price r)
                                        (:start-price last-kline))})))))))))
 
-(defn buy-point?
-  [a-kline times]
+(defn up-point?
+  [a-kline up-times-least & [up-price-least]]
   (let [re (recently-continued-times a-kline)]
     (if (and (= "up" (:trend re))
-             (>= (:times re) times))
+             (>= (:times re) up-times-least)
+             (>= (:diff-price re) (or up-price-least 0)))
       (do (log/info "up re:" re)
-        true)
-      false)))
+          {:suitable? true
+           :up-diff-price (:diff-price re)
+           :end-price (:end-price re)})
+      {:suitable? false})))
 
-(defn sell-point?
+(defn down-point?
   [a-kline down-times-least & [down-price-least]]
   (let [re (recently-continued-times a-kline)]
     (if (and (= "down" (:trend re))
@@ -81,7 +84,8 @@
              (<= (:diff-price re) (or down-price-least 0)))
       (do (log/info "down re:" re)
           {:suitable? true
-           :down-diff-price (:diff-price re)})
+           :down-diff-price (:diff-price re)
+           :end-price (:end-price re)})
       {:suitable? false})))
 
 (defn down-up-point?
@@ -120,11 +124,11 @@
         (let [a-kline (take index a-history-kline)
               re (recently-continued-times a-kline)]
           (cond
-            (buy-point? re times) (if (= status "cny")
+            (up-point? re times) (if (= status "cny")
                                     (do (prn "buy point: " re)
                                         (recur (inc index) "btc"))
                                     (recur (inc index) status))
-            (sell-point? re times) (if (= status "btc")
+            (down-point? re times) (if (= status "btc")
                                      (do (prn "sell point: " re)
                                          (recur (inc index) "cny"))
                                      (recur (inc index) status))
@@ -146,7 +150,7 @@
               (do (prn "buy point: " re re2)
                   (recur (inc index) "btc"))
               (recur (inc index) status))
-            (sell-point? a-kline 1 -0.7)
+            (down-point? a-kline 1 -0.7)
             (if (= status "btc")
               (do (prn "sell point: " re)
                   (recur (inc index) "cny"))
