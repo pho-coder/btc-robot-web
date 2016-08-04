@@ -7,26 +7,52 @@
             [clojure.java.io :as io]
             [rocks.pho.btc-robot-web.utils :as utils]
             [rocks.pho.btc-robot-web.events :as events]
-            [rocks.pho.btc-robot-web.watcher :as watcher]))
+            [rocks.pho.btc-robot-web.watcher :as watcher]
+            [rocks.pho.btc-robot-web.data-analysis :as da]))
 
 (defn home-page []
   (layout/render
-   "home.html" {:docs (-> "docs/docs.md" io/resource slurp)
-                :staticmarket (utils/get-staticmarket)
-                :my-wallet events/my-wallet
-                :price-diff (- (:last (utils/get-staticmarket))
-                               watcher/start-price)
-                :net-asset-diff (- watcher/net-asset
-                                   watcher/start-net-asset)
-                :events (utils/read-a-json-file events/events-log-file)
-                :down-up-point-down-times-least (:down-times-least watcher/down-up-point)
-                :down-up-point-down-price-least (:down-price-least watcher/down-up-point)
-                :down-up-point-up-times-least (:up-times-least watcher/down-up-point)
-                :down-up-point-up-price-least (:up-price-least watcher/down-up-point)
-                :up-point-up-times-least (:up-times-least watcher/up-point)
-                :up-point-up-price-least (:up-price-least watcher/up-point)
-                :down-point-down-times-least (:down-times-least watcher/down-point)
-                :down-point-down-price-least (:down-price-least watcher/down-point)}))
+   "home.html" (let [events (utils/read-a-json-file events/events-log-file)
+                     cleaned-events (da/clean-events events)
+                     deals-re (when-not (empty? cleaned-events)
+                                (da/events-analysis cleaned-events))]
+                 {:docs (-> "docs/docs.md" io/resource slurp)
+                  :staticmarket (utils/get-staticmarket)
+                  :my-wallet events/my-wallet
+                  :price-diff (- (:last (utils/get-staticmarket))
+                                 watcher/start-price)
+                  :net-asset-diff (- watcher/net-asset
+                                     watcher/start-net-asset)
+                  :down-up-point-down-times-least (:down-times-least watcher/down-up-point)
+                  :down-up-point-down-price-least (:down-price-least watcher/down-up-point)
+                  :down-up-point-up-times-least (:up-times-least watcher/down-up-point)
+                  :down-up-point-up-price-least (:up-price-least watcher/down-up-point)
+                  :up-point-up-times-least (:up-times-least watcher/up-point)
+                  :up-point-up-price-least (:up-price-least watcher/up-point)
+                  :down-point-down-times-least (:down-times-least watcher/down-point)
+                  :down-point-down-price-least (:down-price-least watcher/down-point)
+                  :first-buy-time (:first-buy-time deals-re)
+                  :last-sell-time (:last-sell-time deals-re)
+                  :first-buy-cny (:first-buy-cny deals-re)
+                  :last-sell-cny (:last-sell-cny deals-re)
+                  :diff-cny (:diff-cny deals-re)})))
+
+(defn events-page []
+  (layout/render
+   "events.html" {:events (utils/read-a-json-file events/events-log-file)}))
+
+(defn deals-page []
+  (layout/render
+   "deals.html" (let [events (utils/read-a-json-file events/events-log-file)
+                      cleaned-events (da/clean-events events)
+                      deals-re (when-not (empty? cleaned-events)
+                                 (da/events-analysis cleaned-events))]
+                  {:first-buy-time (:first-buy-time deals-re)
+                   :last-sell-time (:last-sell-time deals-re)
+                   :first-buy-cny (:first-buy-cny deals-re)
+                   :last-sell-cny (:last-sell-cny deals-re)
+                   :diff-cny (:diff-cny deals-re)
+                   :deals (:deals deals-re)})))
 
 (defn about-page []
   (layout/render "about.html"))
@@ -120,4 +146,5 @@
   (POST "/down-up-point" [down-times-least down-price-least up-times-least up-price-least] (modify-down-up-point down-times-least down-price-least up-times-least up-price-least))
   (POST "up-point" [up-times-least up-price-least] (modify-up-point up-times-least up-price-least))
   (POST "/down-point" [down-times-least down-price-least] (modify-down-point down-times-least down-price-least))
-  (GET "/reset-all" [] (reset-all)))
+  (GET "/reset-all" [] (reset-all))
+  (GET "events" [] (events-page)))

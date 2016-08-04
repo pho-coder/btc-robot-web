@@ -64,6 +64,66 @@
                         :diff-price (- (:end-price r)
                                        (:start-price last-kline))})))))))))
 
+(defn clean-events
+  "clean events: cut head, tail, failed, no buy or sell"
+  [events]
+  (let [cleaned-events (filter #(and (:success %)
+                                     (or (= "buy" (:type %))
+                                         (= "sell" (:type %)))) events)
+        cutted-head (loop [events cleaned-events]
+                      (if (or (= "buy"
+                                 (:type (first events)))
+                              (empty? events))
+                        events
+                        (recur (rest events))))]
+    (loop [events cutted-head]
+      (if (or (= "sell"
+                 (:type (last events)))
+              (empty? events))
+        events
+        (recur (drop-last events))))))
+
+(defn events-analysis
+  "events analysis"
+  [cleaned-events]
+  (let [first-buy (first cleaned-events)
+        first-buy-time (:time first-buy)
+        first-buy-cny (bigdec (:cny (:before first-buy)))
+        last-sell (last cleaned-events)
+        last-sell-time (:time last-sell)
+        last-sell-cny (bigdec (:cny (:after last-sell)))
+        these-deals (loop [events cleaned-events
+                           deals (vec (list))
+                           buy nil]
+                      (if (empty? events)
+                        deals
+                        (let [this (first events)
+                              type (:type this)]
+                          (case type
+                            "buy" (recur (rest events)
+                                         deals
+                                         this)
+                            "sell" (let [buy-cny (bigdec (:cny (:before buy)))
+                                         sell-cny (bigdec (:cny (:after this)))
+                                         diff-cny (- sell-cny buy-cny)]
+                                     (recur (rest events)
+                                                  (conj deals {:buy-time (:time buy)
+                                                               :sell-time (:time this)
+                                                               :buy-cny buy-cny
+                                                               :sell-cny sell-cny
+                                                               :diff-cny diff-cny
+                                                               :good? (if (> diff-cny 0)
+                                                                        true
+                                                                        false)})
+                                                  nil))
+                            (throw (Exception. (str "event type: " type " ERROR!")))))))]
+    {:first-buy-time first-buy-time
+     :last-sell-time last-sell-time
+     :first-buy-cny first-buy-cny
+     :last-sell-cny last-sell-cny
+     :diff-cny (- last-sell-cny first-buy-cny)
+     :deals these-deals}))
+
 (defn up-point?
   [a-kline up-times-least & [up-price-least]]
   (let [re (recently-continued-times a-kline)]
