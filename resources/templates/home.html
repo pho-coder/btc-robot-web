@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
   <div class="row">
-    <div class="span12">
+    <div class="col-xs-2">
+      <p>
+        down up point:
+      </p>
       <form method="POST" action="/down-up-point">
         {% csrf-field %}
         <p>
@@ -35,10 +38,11 @@
         <input type="submit" class="btn btn-primary" value="modify" />
       </form>
     </div>
-  </div>
 
-  <div class="row">
-    <div class="span12">
+    <div class="col-xs-2">
+      <p>
+        up point:
+      </p>
       <form method="POST" action="/up-point">
         {% csrf-field %}
         <p>
@@ -58,10 +62,11 @@
         <input type="submit" class="btn btn-primary" value="modify" />
       </form>
     </div>
-  </div>
-  
-  <div class="row">
-    <div class="span12">
+
+    <div class="col-xs-2">
+      <p>
+        down point:
+      </p>
       <form method="POST" action="/down-point">
         {% csrf-field %}
         <p>
