@@ -86,6 +86,23 @@
         <input type="submit" class="btn btn-primary" value="modify" />
       </form>
     </div>
+
+    <div class="col-xs-2">
+      <p>
+        down net asset baseline:
+      </p>
+      <form method="POST" action="/down-net-asset-baseline">
+        {% csrf-field %}
+        <p>
+          down net asset baseline:
+          <input class="form-control"
+                 type="string"
+                 name="down-net-asset-baseline"
+                 value="{{down-net-asset-baseline}}" />
+        </p>
+        <input type="submit" class="btn btn-primary" value="modify" />
+      </form>
+    </div>
   </div>
 
   <br>

@@ -31,6 +31,7 @@
                   :up-point-up-price-least (:up-price-least watcher/up-point)
                   :down-point-down-times-least (:down-times-least watcher/down-point)
                   :down-point-down-price-least (:down-price-least watcher/down-point)
+                  :down-net-asset-baseline watcher/down-net-asset-baseline
                   :first-buy-time (:first-buy-time deals-re)
                   :last-sell-time (:last-sell-time deals-re)
                   :first-buy-cny (:first-buy-cny deals-re)
@@ -130,6 +131,9 @@
                                            :down-price-least (bigdec down-price-least)}})
   (response/found "/"))
 
+(defn modify-down-net-asset-baseline [down-net-asset-baseline]
+  (mount/start-with {#'watcher/down-net-asset-baseline (bigdec down-net-asset-baseline)}))
+
 (defn reset-all []
   (mount/start-with {#'watcher/reset-all (true? true)})
   (response/found "/"))
@@ -147,6 +151,7 @@
   (POST "/down-up-point" [down-times-least down-price-least up-times-least up-price-least] (modify-down-up-point down-times-least down-price-least up-times-least up-price-least))
   (POST "/up-point" [up-times-least up-price-least] (modify-up-point up-times-least up-price-least))
   (POST "/down-point" [down-times-least down-price-least] (modify-down-point down-times-least down-price-least))
+  (POST "/down-net-asset-baseline" [down-net-asset-baseline] (modify-down-net-asset-baseline down-net-asset-baseline))
   (GET "/reset-all" [] (reset-all))
   (GET "/events" [] (events-page))
   (GET "/deals" [] (deals-page)))

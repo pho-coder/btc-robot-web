@@ -43,6 +43,7 @@
   "kline watcher"
   []
   (try
+    (log/info "kline watcher start.")
     (let [fixed-klines (drop-last (utils/get-kline "001"))
           found-index (find-kline-datetime fixed-klines
                                            last-kline-log-datetime)
@@ -52,6 +53,7 @@
           (utils/write-a-object kline history-log-file))
         (mount/start-with {#'kline fixed-klines})
         (mount/start-with {#'last-kline-log-datetime (first (last fixed-klines))})))
+    (log/info "kline watcher end.")
     (catch Exception e
       (log/error "kline watcher ERROR:" e))))
 
@@ -74,6 +76,9 @@
 (mount/defstate down-point
   :start {:down-times-least 1M
           :down-price-least -0.7M})
+
+(mount/defstate down-net-asset-baseline
+  :start -3M)
 
 (mount/defstate reset-all
   :start (true? false))
@@ -105,6 +110,7 @@
   "chance watcher"
   []
   (try
+    (log/info "chance watcher start.")
     (when (and reset-all
                (= status "cny"))
       (init))
@@ -130,19 +136,23 @@
                                                       up-diff-price
                                                       diff-now)
                             lastest-bottom-price-diff (+ up-diff-price diff-now)]
-                        (when (and (<= lastest-top-price-diff -0.5M) ;; don't touch lastest top price
-                                   (>= lastest-bottom-price-diff 0.5M)) ;; don't touch lastest bottom price
-                          (reset! down-up-buy? true)
-                          (log/info "D-U-BUY")))))
+                        (if (and (<= lastest-top-price-diff -0.5M) ;; don't touch lastest top price
+                                 (>= lastest-bottom-price-diff 0.5M)) ;; don't touch lastest bottom price
+                          (do (reset! down-up-buy? true)
+                              (log/info "D-U-BUY"))
+                          (log/info "now price:" last-price "not in +- 0.5 range."
+                                    "lastest top price diff:" lastest-top-price-diff
+                                    "lastest bottom price diff:" lastest-bottom-price-diff)))))
                   (when-not @down-up-buy?
                     (let [up-re (da/up-point? kline
                                               (:up-times-least up-point)
                                               (:up-price-least up-point))]
                       (when (:suitable? up-re)
                         (let [last-price (bigdec (:last (utils/get-staticmarket)))]
-                          (when (> last-price (:end-price up-re))  ;; up history and up now
-                            (reset! up-buy? true)
-                            (log/info "U-BUY"))))))
+                          (if (> last-price (:end-price up-re))  ;; up history and up now
+                            (do (reset! up-buy? true)
+                                (log/info "U-BUY"))
+                            (log/info "now price:" last-price "down than last end price:" (:end-price up-re)))))))
                   (when (or @down-up-buy?
                             @up-buy?)
                     (events/balance-wallet)
@@ -162,13 +172,15 @@
                   (when (:suitable? re)
                     (let [last-end-price (:end-price re)
                           last-price (bigdec (:last (utils/get-staticmarket)))]
-                      (when (< last-price last-end-price)  ;; down history & down now
-                        (reset! history-sell? true)
-                        (log/info "H-SELL"))))
+                      (if (< last-price last-end-price)  ;; down history & down now
+                        (do (reset! history-sell? true)
+                            (log/info "H-SELL"))
+                        (log/info "last price:" last-price "up than last end price:" last-end-price))))
                   (when-not @history-sell?
-                    (when (<= (- net-asset-now net-asset) -3M)  ;;  net asset down
-                      (reset! net-asset-sell? true)
-                      (log/info "N-SELL")))
+                    (if (<= (- net-asset-now net-asset) down-net-asset-baseline)  ;;  net asset down
+                      (do (reset! net-asset-sell? true)
+                          (log/info "N-SELL"))
+                      (log/info "net asset down lower than" down-net-asset-baseline)))
                   (when (or @history-sell?
                             @net-asset-sell?)
                     (events/balance-wallet)
@@ -176,5 +188,6 @@
                       (mount/start-with {#'status "cny"}))))
           (throw (Exception. (str "status error: " status))))
         (mount/start-with {#'last-check-datetime lastest-datetime})))
+    (log/info "chance watcher end.")
     (catch Exception e
       (log/error "chance watcher ERROR:" e))))
