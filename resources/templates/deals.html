@@ -17,6 +17,9 @@
   </div>
   <div>
     deals:
-    {{deals|json|safe}}
+    <br>
+    {% for deal in deals %}
+      {{deal}}<br>
+    {% endfor %}
   </div>
 {% endblock %}

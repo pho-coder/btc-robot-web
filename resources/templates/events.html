@@ -2,6 +2,9 @@
 {% block content %}
   <div>
     events:
-    {{events|json|safe}}
+    <br>
+    {% for event in events %}
+      {{event}}<br>
+    {% endfor %}
   </div>
 {% endblock %}
