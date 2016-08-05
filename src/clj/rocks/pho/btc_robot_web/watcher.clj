@@ -61,10 +61,10 @@
   :start {:down-times-least 3M
           :down-price-least -1M
           :up-times-least 1M
-          :up-price-least 1M})
+          :up-price-least 0.7M})
 
 (mount/defstate up-point
-  :start {:up-times-least 2M
+  :start {:up-times-least 1M
           :up-price-least 1M})
 
 (mount/defstate start-net-asset
@@ -89,7 +89,8 @@
 (defn init
   "init state"
   []
-  (let [now (utils/get-readable-time (System/currentTimeMillis) "yyyy-MM-dd_HH-mm-ss")]
+  (try
+   (let [now (utils/get-readable-time (System/currentTimeMillis) "yyyy-MM-dd_HH-mm-ss")]
     (when-not (.exists (clojure.java.io/as-file history-dir))
       (log/error "history dir:" history-dir "NOT EXISTS!"))
     (when-not (.exists (clojure.java.io/as-file events/events-dir))
@@ -101,18 +102,23 @@
     (log/debug "events log:" events/events-log-file)
     (.createNewFile (clojure.java.io/as-file events/events-log-file)))
   (events/reset-wallet)
-  (mount/start-with {#'start-net-asset (bigdec (:net_asset (utils/get-account-info events/huobi-access-key
-                                                                                   events/huobi-secret-key)))})
+  (mount/start-with {#'start-net-asset (bigdec (:net-asset events/my-wallet))})
   (mount/start-with {#'start-price (:last (utils/get-staticmarket))})
   (mount/start-with {#'reset-all (true? false)}))
+  (if (> (:btc events/my-wallet) 0.0)
+    (mount/start-with {#'status "btc"})
+    (mount/start-with {#'status "cny"}))
+  (catch Exception e
+    (log/error "init ERROR:" e)
+    (Thread/sleep 1000)
+    (init)))
 
 (defn chance-watcher
   "chance watcher"
   []
   (try
     (log/info "chance watcher start.")
-    (when (and reset-all
-               (= status "cny"))
+    (when reset-all
       (init))
     (let [kline kline
           lastest-kline (last kline)
