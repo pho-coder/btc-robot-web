@@ -90,28 +90,28 @@
   "init state"
   []
   (try
-   (let [now (utils/get-readable-time (System/currentTimeMillis) "yyyy-MM-dd_HH-mm-ss")]
-    (when-not (.exists (clojure.java.io/as-file history-dir))
-      (log/error "history dir:" history-dir "NOT EXISTS!"))
-    (when-not (.exists (clojure.java.io/as-file events/events-dir))
-      (log/error "events dir:" events/events-dir "NOT EXISTS!"))
-    (mount/start-with {#'history-log-file (str history-dir "/klines.log." now)})
-    (log/debug "klines history log:" history-log-file)
-    (.createNewFile (clojure.java.io/as-file history-log-file))
-    (mount/start-with {#'events/events-log-file (str events/events-dir "/events.log." now)})
-    (log/debug "events log:" events/events-log-file)
-    (.createNewFile (clojure.java.io/as-file events/events-log-file)))
-  (events/reset-wallet)
-  (mount/start-with {#'start-net-asset (bigdec (:net-asset events/my-wallet))})
-  (mount/start-with {#'start-price (:last (utils/get-staticmarket))})
-  (mount/start-with {#'reset-all (true? false)}))
-  (if (> (:btc events/my-wallet) 0.0)
-    (mount/start-with {#'status "btc"})
-    (mount/start-with {#'status "cny"}))
-  (catch Exception e
-    (log/error "init ERROR:" e)
-    (Thread/sleep 1000)
-    (init)))
+    (let [now (utils/get-readable-time (System/currentTimeMillis) "yyyy-MM-dd_HH-mm-ss")]
+      (when-not (.exists (clojure.java.io/as-file history-dir))
+        (log/error "history dir:" history-dir "NOT EXISTS!"))
+      (when-not (.exists (clojure.java.io/as-file events/events-dir))
+        (log/error "events dir:" events/events-dir "NOT EXISTS!"))
+      (mount/start-with {#'history-log-file (str history-dir "/klines.log." now)})
+      (log/debug "klines history log:" history-log-file)
+      (.createNewFile (clojure.java.io/as-file history-log-file))
+      (mount/start-with {#'events/events-log-file (str events/events-dir "/events.log." now)})
+      (log/debug "events log:" events/events-log-file)
+      (.createNewFile (clojure.java.io/as-file events/events-log-file)))
+    (events/reset-wallet)
+    (mount/start-with {#'start-net-asset (bigdec (:net-asset events/my-wallet))})
+    (mount/start-with {#'start-price (:last (utils/get-staticmarket))})
+    (mount/start-with {#'reset-all (true? false)})
+    (if (> (:btc events/my-wallet) 0.0)
+      (mount/start-with {#'status "btc"})
+      (mount/start-with {#'status "cny"}))
+    (catch Exception e
+      (log/error "init ERROR:" e)
+      (Thread/sleep 1000)
+      (init))))
 
 (defn chance-watcher
   "chance watcher"
