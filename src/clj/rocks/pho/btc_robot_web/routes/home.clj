@@ -147,4 +147,5 @@
   (POST "/up-point" [up-times-least up-price-least] (modify-up-point up-times-least up-price-least))
   (POST "/down-point" [down-times-least down-price-least] (modify-down-point down-times-least down-price-least))
   (GET "/reset-all" [] (reset-all))
-  (GET "events" [] (events-page)))
+  (GET "/events" [] (events-page))
+  (GET "/deals" [] (deals-page)))
