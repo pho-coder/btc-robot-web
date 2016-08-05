@@ -122,7 +122,8 @@
 
 (defn modify-up-point [up-times-least up-price-least]
   (mount/start-with {#'watcher/up-point {:up-times-least (bigdec up-times-least)
-                                         :up-price-least (bigdec up-price-least)}}))
+                                         :up-price-least (bigdec up-price-least)}})
+  (response/found "/"))
 
 (defn modify-down-point [down-times-least down-price-least]
   (mount/start-with {#'watcher/down-point {:down-times-least (bigdec down-times-least)
