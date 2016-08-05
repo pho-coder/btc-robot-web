@@ -186,7 +186,7 @@
                     (if (<= (- net-asset-now net-asset) down-net-asset-baseline)  ;;  net asset down
                       (do (reset! net-asset-sell? true)
                           (log/info "N-SELL"))
-                      (log/info "net asset down lower than" down-net-asset-baseline)))
+                      (log/info "history top net asset:" net-asset "net asset down lower than" down-net-asset-baseline)))
                   (when (or @history-sell?
                             @net-asset-sell?)
                     (events/balance-wallet)

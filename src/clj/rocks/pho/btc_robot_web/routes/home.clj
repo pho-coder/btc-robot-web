@@ -55,6 +55,10 @@
                    :diff-cny (:diff-cny deals-re)
                    :deals (:deals deals-re)})))
 
+(defn klines-page []
+  (layout/render
+   "klines.html" {:klines (reverse (map #(utils/parse-kline-data %) (utils/read-a-json-file watcher/history-log-file)))}))
+
 (defn about-page []
   (layout/render "about.html"))
 
@@ -154,4 +158,5 @@
   (POST "/down-net-asset-baseline" [down-net-asset-baseline] (modify-down-net-asset-baseline down-net-asset-baseline))
   (GET "/reset-all" [] (reset-all))
   (GET "/events" [] (events-page))
-  (GET "/deals" [] (deals-page)))
+  (GET "/deals" [] (deals-page))
+  (GET "/klines" [] (klines-page)))
