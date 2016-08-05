@@ -49,7 +49,8 @@
         (throw (Exception. (str account-info))))
       (mount/start-with {#'my-wallet {:cny (Float/parseFloat (:available_cny_display account-info))
                                       :btc (Float/parseFloat (:available_btc_display account-info))
-                                      :loan-btc (Float/parseFloat (:loan_btc_display account-info))}})
+                                      :loan-btc (Float/parseFloat (:loan_btc_display account-info))
+                                      :net-asset (Float/parseFloat (:net_asset account-info))}})
       (log/info my-wallet))
     (catch Exception e
       (log/error e)
