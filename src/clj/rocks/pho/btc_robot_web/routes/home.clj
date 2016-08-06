@@ -136,7 +136,8 @@
   (response/found "/"))
 
 (defn modify-down-net-asset-baseline [down-net-asset-baseline]
-  (mount/start-with {#'watcher/down-net-asset-baseline (bigdec down-net-asset-baseline)}))
+  (mount/start-with {#'watcher/down-net-asset-baseline (bigdec down-net-asset-baseline)})
+  (response/found "/"))
 
 (defn reset-all []
   (mount/start-with {#'watcher/reset-all (true? true)})
