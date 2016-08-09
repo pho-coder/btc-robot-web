@@ -39,11 +39,16 @@
             index
             (recur (inc index))))))))
 
+(mount/defstate kline-watch-times :start 0)
+
 (defn kline-watcher
   "kline watcher"
   []
   (try
-    (log/info "kline watcher start.")
+    (mount/start-with {#'kline-watch-times (inc kline-watch-times)})
+    (when (= (mod kline-watch-times 600)
+             0)
+      (log/info "kline watch times:" kline-watch-times))
     (let [fixed-klines (drop-last (utils/get-kline "001"))
           found-index (find-kline-datetime fixed-klines
                                            last-kline-log-datetime)
@@ -53,7 +58,6 @@
           (utils/write-a-object kline history-log-file))
         (mount/start-with {#'kline fixed-klines})
         (mount/start-with {#'last-kline-log-datetime (first (last fixed-klines))})))
-    (log/info "kline watcher end.")
     (catch Exception e
       (log/error "kline watcher ERROR:" e))))
 
@@ -113,11 +117,16 @@
       (Thread/sleep 1000)
       (init))))
 
+(mount/defstate chance-watch-times :start 0)
+
 (defn chance-watcher
   "chance watcher"
   []
   (try
-    (log/info "chance watcher start.")
+    (mount/start-with {#'chance-watch-times (inc chance-watch-times)})
+    (when (= (mod chance-watch-times 3000)
+             0)
+      (log/info "chance watch times:" chance-watch-times))
     (when reset-all
       (init))
     (let [kline kline
@@ -194,6 +203,5 @@
                       (mount/start-with {#'status "cny"}))))
           (throw (Exception. (str "status error: " status))))
         (mount/start-with {#'last-check-datetime lastest-datetime})))
-    (log/info "chance watcher end.")
     (catch Exception e
       (log/error "chance watcher ERROR:" e))))
