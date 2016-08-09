@@ -90,10 +90,16 @@
 (mount/defstate start-price
   :start 0M)
 
+(mount/defstate deal-times-one-round :start 10)
+
+(mount/defstate rounds :start (list))
+
 (defn init
   "init state"
   []
   (try
+    (log/info "start init!")
+    ;; init log file, klines events
     (let [now (utils/get-readable-time (System/currentTimeMillis) "yyyy-MM-dd_HH-mm-ss")]
       (when-not (.exists (clojure.java.io/as-file history-dir))
         (log/error "history dir:" history-dir "NOT EXISTS!"))
@@ -105,17 +111,64 @@
       (mount/start-with {#'events/events-log-file (str events/events-dir "/events.log." now)})
       (log/debug "events log:" events/events-log-file)
       (.createNewFile (clojure.java.io/as-file events/events-log-file)))
+    ;; reset wallet
     (events/reset-wallet)
     (mount/start-with {#'start-net-asset (bigdec (:net-asset events/my-wallet))})
     (mount/start-with {#'start-price (:last (utils/get-staticmarket))})
-    (mount/start-with {#'reset-all (true? false)})
     (if (> (:btc events/my-wallet) 0.0)
       (mount/start-with {#'status "btc"})
       (mount/start-with {#'status "cny"}))
+    ;; init conf
+    (let [conf-file (str history-dir "/conf.json")]
+      (when (.exists (clojure.java.io/as-file conf-file))
+        (let [conf (last (utils/read-a-json-file conf-file))
+              down-up-point-conf (:down-up-point conf)
+              up-point-conf (:up-point conf)
+              down-point-conf (:down-point conf)
+              down-net-asset-baseline-conf (:down-net-asset-baseline conf)
+              deal-times-one-round (:deal-times-one-round conf)]
+          (log/info "conf:" conf)
+          (mount/start-with {#'down-up-point (bigdec down-up-point-conf)})
+          (mount/start-with {#'up-point (bigdec up-point-conf)})
+          (mount/start-with {#'down-point (bigdec down-point-conf)})
+          (mount/start-with {#'down-net-asset-baseline (bigdec down-net-asset-baseline-conf)})
+          (mount/start-with {#'deal-times-one-round deal-times-one-round}))))
+    ;; reset flag
+    (mount/start-with {#'reset-all (true? false)})
+    ;; reset events
+    (mount/start-with {#'events/events (vec (list))})
+    (log/info "end init!")
     (catch Exception e
       (log/error "init ERROR:" e)
       (Thread/sleep 1000)
       (init))))
+
+(defn close
+  "close one round"
+  []
+  (try
+    (log/info "start close!")
+    ;; write conf
+    (let [conf-file (str history-dir "/conf.json")]
+      (utils/write-a-object {:down-up-point down-up-point
+                             :up-point up-point
+                             :down-point down-point
+                             :down-net-asset-baseline down-net-asset-baseline
+                             :deal-times-one-round deal-times-one-round
+                             :datetime (utils/get-readable-time (System/currentTimeMillis))}))
+    (let [cleaned-events (da/clean-events events/events)
+          deals (when-not (empty? cleaned-events)
+                  (da/events-analysis cleaned-events))]
+      (when-not (nil? deals)
+        (let [size (.size deals)
+              first-deal (first deals)
+              last-deal (last deals)
+              ])))
+    (log/info "end close!")
+    (catch Exception e
+      (log/error "close ERROR:" e)
+      (Thread/sleep 200)
+      (close))))
 
 (mount/defstate chance-watch-times :start 0)
 
@@ -128,6 +181,7 @@
              0)
       (log/info "chance watch times:" chance-watch-times))
     (when reset-all
+      (close)
       (init))
     (let [kline kline
           lastest-kline (last kline)
@@ -200,7 +254,13 @@
                             @net-asset-sell?)
                     (events/balance-wallet)
                     (when (:success (events/show-hand "sell"))
-                      (mount/start-with {#'status "cny"}))))
+                      (mount/start-with {#'status "cny"})
+                      (let [cleaned-events (da/clean-events events/events)
+                            deals (when-not (empty? cleaned-events)
+                                    (da/events-analysis cleaned-events))]
+                        (when (and (not (nil? deals))
+                                   (>= (.size deals) deal-times-one-round))
+                          (mount/start-with {#'reset-all true}))))))
           (throw (Exception. (str "status error: " status))))
         (mount/start-with {#'last-check-datetime lastest-datetime})))
     (catch Exception e

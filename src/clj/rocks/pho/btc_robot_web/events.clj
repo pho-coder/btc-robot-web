@@ -28,6 +28,9 @@
 (mount/defstate event-types
                 :start #{"buy" "sell" "loan" "repay" "balance"})
 
+(mount/defstate events
+                :start (vec (list)))  ;; I need a seq which add element from tail, because log file is so
+
 (defn event-model
   "buy, sell event model"
   [type before-wallet after-wallet success?]
@@ -60,6 +63,7 @@
 (defn log-event
   [event]
   (log/info event)
+  (conj events event)
   (utils/write-a-object event events-log-file))
 
 (defn balance-wallet

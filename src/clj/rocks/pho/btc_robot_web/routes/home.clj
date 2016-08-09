@@ -12,7 +12,7 @@
 
 (defn home-page []
   (layout/render
-   "home.html" (let [events (utils/read-a-json-file events/events-log-file)
+   "home.html" (let [events events/events
                      cleaned-events (da/clean-events events)
                      deals-re (when-not (empty? cleaned-events)
                                 (da/events-analysis cleaned-events))]
@@ -40,11 +40,11 @@
 
 (defn events-page []
   (layout/render
-   "events.html" {:events (utils/read-a-json-file events/events-log-file)}))
+   "events.html" {:events events/events}))
 
 (defn deals-page []
   (layout/render
-   "deals.html" (let [events (utils/read-a-json-file events/events-log-file)
+   "deals.html" (let [events events
                       cleaned-events (da/clean-events events)
                       deals-re (when-not (empty? cleaned-events)
                                  (da/events-analysis cleaned-events))]
