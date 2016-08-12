@@ -104,13 +104,23 @@
                                          deals
                                          this)
                             "sell" (let [buy-cny (bigdec (:cny (:before buy)))
+                                         buy-avg-price (with-precision 2 (/ (- (:cny (:before buy))
+                                                                               (:cny (:after buy)))
+                                                                            (- (:btc (:after buy))
+                                                                               (:btc (:before buy)))))
                                          sell-cny (bigdec (:cny (:after this)))
+                                         sell-avg-price (with-precision 2 (/ (- (:cny (:after this))
+                                                                                (:cny (:before this)))
+                                                                             (- (:btc (:before this))
+                                                                                (:btc (:after this)))))
                                          diff-cny (- sell-cny buy-cny)]
                                      (recur (rest events)
                                                   (conj deals {:buy-time (:time buy)
                                                                :sell-time (:time this)
                                                                :buy-cny buy-cny
+                                                               :buy-avg-price buy-avg-price
                                                                :sell-cny sell-cny
+                                                               :sell-avg-price sell-avg-price
                                                                :diff-cny diff-cny
                                                                :good? (if (> diff-cny 0)
                                                                         true
@@ -123,6 +133,26 @@
      :last-sell-cny last-sell-cny
      :diff-cny (- last-sell-cny first-buy-cny)
      :deals these-deals}))
+
+(defn deals-analysis
+  "get a list deals statistics data & analysis by klines"
+  [deals klines]
+  (let [num (.size deals)
+        first-deal (first deals)
+        last-deal (last deals)
+        start-time (:buy-time first-deal)
+        start-datetime (.substring start-time 0 16)
+        start-cny (:buy-cny first-deal)
+        end-time (:sell-time last-deal)
+        end-datetime (.substring end-time 0 16)
+        end-cny (:sell-cny last-deal)
+        ;; add buy-point-best? sell-point-best?
+        buy-point-best? (fn [deal klines]
+                          (let [buy-avg-price (:buy-avg-price deal)
+                                diff-price 0.5M]
+                            ))
+        these-deals (map #(let []) deals)]
+))
 
 (defn up-point?
   [a-kline up-times-least & [up-price-least]]

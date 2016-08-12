@@ -44,7 +44,7 @@
 
 (defn deals-page []
   (layout/render
-   "deals.html" (let [events events
+   "deals.html" (let [events events/events
                       cleaned-events (da/clean-events events)
                       deals-re (when-not (empty? cleaned-events)
                                  (da/events-analysis cleaned-events))]

@@ -81,6 +81,7 @@
      :start-price start-price
      :top-price top-price
      :low-price low-price
+     :mid-price (/ (+ top-price low-price) 2)
      :end-price end-price
      :volume volume
      :end-diff-price end-diff-price

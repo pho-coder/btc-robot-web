@@ -163,7 +163,12 @@
         (let [size (.size deals)
               first-deal (first deals)
               last-deal (last deals)
-              ])))
+              start-time (:buy-time first-deal)
+              buy-cny (:buy-cny first-deal)
+              end-time (:sell-time last-deal)
+              sell-cny (:sell-cny last-deal)
+              ]
+          )))
     (log/info "end close!")
     (catch Exception e
       (log/error "close ERROR:" e)
