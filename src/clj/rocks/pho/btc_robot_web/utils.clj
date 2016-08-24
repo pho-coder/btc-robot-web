@@ -261,3 +261,45 @@
              (map #(json/read-str %
                                   :key-fn keyword)
                   (doall (line-seq rdr)))))))
+
+(defn find-kline-datetime
+  "datetime : 20160823153200000
+  return -1 : not found
+          n : find at index n"
+  [a-kline datetime]
+  (if (= last-kline-log-datetime "")
+    -1
+    (loop [index 0]
+      (if (>= index (.size a-kline))
+        -1
+        (let [dt (first (nth a-kline index))]
+          (if (= dt datetime)
+            index
+            (recur (inc index))))))))
+
+(defn deal-datetime2kline-datetime
+  "format deal datetime to kline datetime
+  2016-08-23 15:18:18 to 20160823153200000"
+  [datetime]
+  (str (.substring datetime 0 4)
+       (.substring datetime 5 7)
+       (.substring datetime 8 10)
+       (.substring datetime 11 13)
+       (.substring datetime 14 16)
+       "00000"))
+  
+(defn cut-klines
+  "from a kline datetime to another kline datetime"
+  [start-datetime end-datetime klines]
+  (let [start-index (find-kline-datetime klines start-datetime)
+        end-index (find-kline-datetime klines end-datetime)]
+    (if (or (= start-index -1)
+            (= end-index -1))
+      {:success false
+       :info (str "start index: " start-index
+                  " end index: " end-index)}
+      (if (< end-index start-index)
+        {:success false
+         :info (str "start index: " start-index
+                    " end index: " end-index)}
+        (drop start-index (take (inc end-index) klines))))))

@@ -115,17 +115,17 @@
                                                                                 (:btc (:after this)))))
                                          diff-cny (- sell-cny buy-cny)]
                                      (recur (rest events)
-                                                  (conj deals {:buy-time (:time buy)
-                                                               :sell-time (:time this)
-                                                               :buy-cny buy-cny
-                                                               :buy-avg-price buy-avg-price
-                                                               :sell-cny sell-cny
-                                                               :sell-avg-price sell-avg-price
-                                                               :diff-cny diff-cny
-                                                               :good? (if (> diff-cny 0)
-                                                                        true
-                                                                        false)})
-                                                  nil))
+                                            (conj deals {:buy-time (:time buy)
+                                                         :sell-time (:time this)
+                                                         :buy-cny buy-cny
+                                                         :buy-avg-price buy-avg-price
+                                                         :sell-cny sell-cny
+                                                         :sell-avg-price sell-avg-price
+                                                         :diff-cny diff-cny
+                                                         :good? (if (> diff-cny 0)
+                                                                  true
+                                                                  false)})
+                                            nil))
                             (throw (Exception. (str "event type: " type " ERROR!")))))))]
     {:first-buy-time first-buy-time
      :last-sell-time last-sell-time
@@ -133,6 +133,74 @@
      :last-sell-cny last-sell-cny
      :diff-cny (- last-sell-cny first-buy-cny)
      :deals these-deals}))
+
+(defn deal-point-analysis
+  "get a deal & klines after the deal, the line diff good normal bad, the line is pos num"
+  [type deal klines the-line]
+  (let [deal-price (case type
+                     :buy (:buy-avg-price deal)
+                     :sell (:sell-avg-price deal)
+                     (throw (Exception. (str "type: " type " ERROR!"))))]
+    (loop [ks klines
+           re {:good-price-times 0
+               :bad-price-times 0
+               :max-good-diff-price 0M
+               :max-bad-diff-price 0M}]
+      (if (empty? ks)
+        re
+        (let [kline (first ks)
+              mid-price (:mid-price kline)
+              diff-price (- mid-price
+                            deal-price)]
+          (cond
+            (>= diff-price
+                the-line) (if (> diff-price
+                                 ((case type
+                                   :buy :max-good-diff-price
+                                   :sell :max-bad-diff-price) re))
+                            (recur (rest ks)
+                                   (update-in
+                                    (assoc-in re
+                                              [(case type
+                                                 :buy :max-good-diff-price
+                                                 :sell :max-bad-diff-price)]
+                                              diff-price)
+                                    [(case type
+                                       :buy :good-price-times
+                                       :sell :bad-price-times)]
+                                    inc))
+                            (recur (rest ks)
+                                   (update-in
+                                    re
+                                    [(case type
+                                       :buy :good-price-times
+                                       :sell :bad-price-times)]
+                                    inc)))
+            (<= diff-price
+                (unchecked-negate-int the-line)) (if (< diff-price
+                                                        ((case type
+                                                           :buy :max-bad-diff-price
+                                                           :sell :max-good-diff-price) re))
+                                                   (recur (rest ks)
+                                                          (update-in
+                                                           (assoc-in re
+                                                                     [(case type
+                                                                        :buy :max-bad-diff-price
+                                                                        :sell :max-good-diff-price)]
+                                                                     diff-price)
+                                                           [(case type
+                                                              :buy :bad-price-times
+                                                              :sell :good-price-times)]
+                                                           inc))
+                                                   (recur (rest ks)
+                                                          (update-in
+                                                           re
+                                                           [(case type
+                                                              :buy :bad-price-times
+                                                              :sell :good-price-times)]
+                                                           inc)))
+            :else (recur (rest ks)
+                         re)))))))
 
 (defn deals-analysis
   "get a list deals statistics data & analysis by klines"
@@ -147,12 +215,9 @@
         end-datetime (.substring end-time 0 16)
         end-cny (:sell-cny last-deal)
         ;; add buy-point-best? sell-point-best?
-        buy-point-best? (fn [deal klines]
-                          (let [buy-avg-price (:buy-avg-price deal)
-                                diff-price 0.5M]
-                            ))
-        these-deals (map #(let []) deals)]
-))
+        the-diff-line 0.5M]
+    ))
+    
 
 (defn up-point?
   [a-kline up-times-least & [up-price-least]]

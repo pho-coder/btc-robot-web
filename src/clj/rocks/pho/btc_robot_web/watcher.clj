@@ -13,7 +13,7 @@
 (mount/defstate history-log-file
   :start "")
 
-(mount/defstate kline
+(mount/defstate klines
   :start (list))
 
 (mount/defstate status
@@ -24,20 +24,6 @@
 
 (mount/defstate last-kline-log-datetime
   :start "")
-
-(defn find-kline-datetime
-  "return -1 : not found
-           n : find at index n"
-  [a-kline datetime]
-  (if (= last-kline-log-datetime "")
-    -1
-    (loop [index 0]
-      (if (>= index (.size a-kline))
-        -1
-        (let [dt (first (nth a-kline index))]
-          (if (= dt datetime)
-            index
-            (recur (inc index))))))))
 
 (mount/defstate kline-watch-times :start 0)
 
@@ -50,13 +36,13 @@
              0)
       (log/info "kline watch times:" kline-watch-times))
     (let [fixed-klines (drop-last (utils/get-kline "001"))
-          found-index (find-kline-datetime fixed-klines
+          found-index (utils/find-kline-datetime fixed-klines
                                            last-kline-log-datetime)
           new-klines (nthrest fixed-klines (inc found-index))]
       (when-not (empty? new-klines)
         (doseq [kline new-klines]
           (utils/write-a-object kline history-log-file))
-        (mount/start-with {#'kline fixed-klines})
+        (mount/start-with {#'klines fixed-klines})
         (mount/start-with {#'last-kline-log-datetime (first (last fixed-klines))})))
     (catch Exception e
       (log/error "kline watcher ERROR:" e))))
@@ -166,9 +152,9 @@
               start-time (:buy-time first-deal)
               buy-cny (:buy-cny first-deal)
               end-time (:sell-time last-deal)
-              sell-cny (:sell-cny last-deal)
-              ]
-          )))
+              sell-cny (:sell-cny last-deal)])))
+              
+          
     (log/info "end close!")
     (catch Exception e
       (log/error "close ERROR:" e)
@@ -188,13 +174,13 @@
     (when reset-all
       (close)
       (init))
-    (let [kline kline
-          lastest-kline (last kline)
+    (let [klines klines
+          lastest-kline (last klines)
           lastest-datetime (first lastest-kline)
           lastest-end-price (bigdec (nth lastest-kline 4))]
       (when (not= lastest-datetime last-check-datetime)
         (case status
-          "cny" (let [down-up-re (da/down-up-point? kline
+          "cny" (let [down-up-re (da/down-up-point? klines
                                                     (:down-times-least down-up-point)
                                                     (:down-price-least down-up-point)
                                                     (:up-times-least down-up-point)
@@ -218,7 +204,7 @@
                                     "lastest top price diff:" lastest-top-price-diff
                                     "lastest bottom price diff:" lastest-bottom-price-diff)))))
                   (when-not @down-up-buy?
-                    (let [up-re (da/up-point? kline
+                    (let [up-re (da/up-point? klines
                                               (:up-times-least up-point)
                                               (:up-price-least up-point))]
                       (when (:suitable? up-re)
@@ -234,7 +220,7 @@
                       (mount/start-with {#'status "btc"})
                       (mount/start-with {#'net-asset (bigdec (:net_asset (utils/get-account-info events/huobi-access-key
                                                                                                  events/huobi-secret-key)))}))))
-          "btc" (let [re (da/down-point? kline
+          "btc" (let [re (da/down-point? klines
                                          (:down-times-least down-point)
                                          (:down-price-least down-point))  ;; fixed history klines sell point
                       net-asset-now (bigdec (:net_asset (utils/get-account-info events/huobi-access-key
