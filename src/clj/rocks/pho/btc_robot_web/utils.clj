@@ -267,15 +267,13 @@
   return -1 : not found
           n : find at index n"
   [a-kline datetime]
-  (if (= last-kline-log-datetime "")
-    -1
-    (loop [index 0]
-      (if (>= index (.size a-kline))
-        -1
-        (let [dt (first (nth a-kline index))]
-          (if (= dt datetime)
-            index
-            (recur (inc index))))))))
+  (loop [index 0]
+    (if (>= index (.size a-kline))
+      -1
+      (let [dt (first (nth a-kline index))]
+        (if (= dt datetime)
+          index
+          (recur (inc index)))))))
 
 (defn deal-datetime2kline-datetime
   "format deal datetime to kline datetime

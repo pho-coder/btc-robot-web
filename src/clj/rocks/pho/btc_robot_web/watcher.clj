@@ -27,6 +27,9 @@
 
 (mount/defstate kline-watch-times :start 0)
 
+(mount/defstate last-deal-buy-time
+                :start "")
+
 (defn kline-watcher
   "kline watcher"
   []

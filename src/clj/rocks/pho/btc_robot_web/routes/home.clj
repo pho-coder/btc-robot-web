@@ -12,31 +12,26 @@
 
 (defn home-page []
   (layout/render
-   "home.html" (let [events events/events
-                     cleaned-events (da/clean-events events)
-                     deals-re (when-not (empty? cleaned-events)
-                                (da/events-analysis cleaned-events))]
-                 {:docs (-> "docs/docs.md" io/resource slurp)
-                  :staticmarket (utils/get-staticmarket)
-                  :my-wallet events/my-wallet
-                  :price-diff (- (:last (utils/get-staticmarket))
-                                 watcher/start-price)
-                  :net-asset-diff (- watcher/net-asset
-                                     watcher/start-net-asset)
-                  :down-up-point-down-times-least (:down-times-least watcher/down-up-point)
-                  :down-up-point-down-price-least (:down-price-least watcher/down-up-point)
-                  :down-up-point-up-times-least (:up-times-least watcher/down-up-point)
-                  :down-up-point-up-price-least (:up-price-least watcher/down-up-point)
-                  :up-point-up-times-least (:up-times-least watcher/up-point)
-                  :up-point-up-price-least (:up-price-least watcher/up-point)
-                  :down-point-down-times-least (:down-times-least watcher/down-point)
-                  :down-point-down-price-least (:down-price-least watcher/down-point)
-                  :down-net-asset-baseline watcher/down-net-asset-baseline
-                  :first-buy-time (:first-buy-time deals-re)
-                  :last-sell-time (:last-sell-time deals-re)
-                  :first-buy-cny (:first-buy-cny deals-re)
-                  :last-sell-cny (:last-sell-cny deals-re)
-                  :diff-cny (:diff-cny deals-re)})))
+   "home.html" {:staticmarket (utils/get-staticmarket)
+                :my-wallet events/my-wallet
+                :price-diff (- (:last (utils/get-staticmarket))
+                               watcher/start-price)
+                :net-asset-diff (- watcher/net-asset
+                                   watcher/start-net-asset)
+                :down-up-point-down-times-least (:down-times-least watcher/down-up-point)
+                :down-up-point-down-price-least (:down-price-least watcher/down-up-point)
+                :down-up-point-up-times-least (:up-times-least watcher/down-up-point)
+                :down-up-point-up-price-least (:up-price-least watcher/down-up-point)
+                :up-point-up-times-least (:up-times-least watcher/up-point)
+                :up-point-up-price-least (:up-price-least watcher/up-point)
+                :down-point-down-times-least (:down-times-least watcher/down-point)
+                :down-point-down-price-least (:down-price-least watcher/down-point)
+                :down-net-asset-baseline watcher/down-net-asset-baseline
+                :first-buy-time (:first-buy-time events/deals)
+                :last-sell-time (:last-sell-time events/deals)
+                :first-buy-cny (:first-buy-cny events/deals)
+                :last-sell-cny (:last-sell-cny events/deals)
+                :diff-cny (:diff-cny events/deals)}))
 
 (defn events-page []
   (layout/render
@@ -44,16 +39,12 @@
 
 (defn deals-page []
   (layout/render
-   "deals.html" (let [events events/events
-                      cleaned-events (da/clean-events events)
-                      deals-re (when-not (empty? cleaned-events)
-                                 (da/events-analysis cleaned-events))]
-                  {:first-buy-time (:first-buy-time deals-re)
-                   :last-sell-time (:last-sell-time deals-re)
-                   :first-buy-cny (:first-buy-cny deals-re)
-                   :last-sell-cny (:last-sell-cny deals-re)
-                   :diff-cny (:diff-cny deals-re)
-                   :deals (:deals deals-re)})))
+   "deals.html" {:first-buy-time (:first-buy-time events/deals)
+                 :last-sell-time (:last-sell-time events/deals)
+                 :first-buy-cny (:first-buy-cny events/deals)
+                   :last-sell-cny (:last-sell-cny events/deals)
+                   :diff-cny (:diff-cny events/deals)
+                   :deals (:deals events/deals)}))
 
 (defn klines-page []
   (layout/render

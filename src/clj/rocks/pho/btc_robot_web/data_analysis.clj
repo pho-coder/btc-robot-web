@@ -215,8 +215,8 @@
         end-datetime (.substring end-time 0 16)
         end-cny (:sell-cny last-deal)
         ;; add buy-point-best? sell-point-best?
-        the-diff-line 0.5M]
-    ))
+        the-diff-line 0.5M]))
+    
     
 
 (defn up-point?

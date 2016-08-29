@@ -3,7 +3,8 @@
             [mount.core :as mount]
 
             [rocks.pho.btc-robot-web.config :refer [env]]
-            [rocks.pho.btc-robot-web.utils :as utils]))
+            [rocks.pho.btc-robot-web.utils :as utils]
+            [rocks.pho.btc-robot-web.data-analysis :as da]))
 
 (mount/defstate huobi-access-key
                 :start (:access-key (:huobi env)))
@@ -30,6 +31,9 @@
 
 (mount/defstate events
                 :start (vec (list)))  ;; I need a seq which add element from tail, because log file is so
+
+(mount/defstate deals
+                :start (list)) 
 
 (defn event-model
   "buy, sell event model"
@@ -63,8 +67,13 @@
 (defn log-event
   [event]
   (log/info event)
-  (conj events event)
-  (utils/write-a-object event events-log-file))
+  (mount/start-with {#'events (conj events event)})
+  (utils/write-a-object event events-log-file)
+  (if (= (:type events)
+         "sell")
+    (let [cleaned-events (da/clean-events events)]
+      (when-not (empty? cleaned-events)
+        (mount/start-with {#'deals (da/events-analysis cleaned-events)})))))
 
 (defn balance-wallet
   []
