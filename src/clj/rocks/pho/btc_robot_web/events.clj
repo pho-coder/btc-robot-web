@@ -69,7 +69,7 @@
   (log/info event)
   (mount/start-with {#'events (conj events event)})
   (utils/write-a-object event events-log-file)
-  (if (= (:type events)
+  (if (= (:type event)
          "sell")
     (let [cleaned-events (da/clean-events events)]
       (when-not (empty? cleaned-events)

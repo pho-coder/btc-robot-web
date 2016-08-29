@@ -106,8 +106,8 @@
                   {:success "error"})))
 
 (defn stop []
-  (layout/render
-   "about.html" (System/exit 0)))
+  (watcher/close)
+  (System/exit 0))
 
 (defn modify-down-up-point [down-times-least down-price-least up-times-least up-price-least]
   (mount/start-with {#'watcher/down-up-point {:down-times-least (bigdec down-times-least)
