@@ -42,9 +42,9 @@
    "deals.html" {:first-buy-time (:first-buy-time events/deals)
                  :last-sell-time (:last-sell-time events/deals)
                  :first-buy-cny (:first-buy-cny events/deals)
-                   :last-sell-cny (:last-sell-cny events/deals)
-                   :diff-cny (:diff-cny events/deals)
-                   :deals (:deals events/deals)}))
+                 :last-sell-cny (:last-sell-cny events/deals)
+                 :diff-cny (:diff-cny events/deals)
+                 :deals (:deals events/deals)}))
 
 (defn klines-page []
   (layout/render

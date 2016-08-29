@@ -137,6 +137,11 @@
   []
   (try
     (log/info "start close!")
+    ;; show hand
+    (when (> (:btc (events/my-wallet))
+             0M)
+      (log/info "before closing show hand")
+      (events/show-hand "sell"))
     ;; write conf
     (let [conf-file (str history-dir "/conf.json")]
       (utils/write-a-object {:down-up-point down-up-point
