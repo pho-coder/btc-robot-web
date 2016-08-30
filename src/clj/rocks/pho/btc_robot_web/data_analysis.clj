@@ -215,9 +215,11 @@
         end-datetime (.substring end-time 0 16)
         end-cny (:sell-cny last-deal)
         ;; add buy-point-best? sell-point-best?
-        the-diff-line 0.5M]))
-    
-    
+        the-diff-line 0.5M]
+    {:start-time start-time
+     :start-cny start-cny
+     :end-time end-time
+     :end-cny end-cny}))
 
 (defn up-point?
   [a-kline up-times-least & [up-price-least]]

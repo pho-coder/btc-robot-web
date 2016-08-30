@@ -31,7 +31,9 @@
                 :last-sell-time (:last-sell-time events/deals)
                 :first-buy-cny (:first-buy-cny events/deals)
                 :last-sell-cny (:last-sell-cny events/deals)
-                :diff-cny (:diff-cny events/deals)}))
+                :diff-cny (:diff-cny events/deals)
+                :last-kline-watcher-time watcher/last-kline-watcher-time
+                :last-chance-watcher-time watcher/last-chance-watcher-time}))
 
 (defn events-page []
   (layout/render

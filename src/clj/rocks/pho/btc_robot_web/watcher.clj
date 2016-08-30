@@ -30,6 +30,8 @@
 (mount/defstate last-deal-buy-time
                 :start "")
 
+(mount/defstate last-kline-watcher-time :start "")
+
 (defn kline-watcher
   "kline watcher"
   []
@@ -47,6 +49,7 @@
           (utils/write-a-object kline history-log-file))
         (mount/start-with {#'klines fixed-klines})
         (mount/start-with {#'last-kline-log-datetime (first (last fixed-klines))})))
+    (mount/start-with {#'last-kline-watcher-time (utils/get-readable-time (System/currentTimeMillis))})
     (catch Exception e
       (log/error "kline watcher ERROR:" e))))
 
@@ -150,19 +153,6 @@
                              :down-net-asset-baseline down-net-asset-baseline
                              :deal-times-one-round deal-times-one-round
                              :datetime (utils/get-readable-time (System/currentTimeMillis))}))
-    (let [cleaned-events (da/clean-events events/events)
-          deals (when-not (empty? cleaned-events)
-                  (da/events-analysis cleaned-events))]
-      (when-not (nil? deals)
-        (let [size (.size deals)
-              first-deal (first deals)
-              last-deal (last deals)
-              start-time (:buy-time first-deal)
-              buy-cny (:buy-cny first-deal)
-              end-time (:sell-time last-deal)
-              sell-cny (:sell-cny last-deal)])))
-              
-          
     (log/info "end close!")
     (catch Exception e
       (log/error "close ERROR:" e)
@@ -170,6 +160,8 @@
       (close))))
 
 (mount/defstate chance-watch-times :start 0)
+
+(mount/defstate last-chance-watcher-time :start "")
 
 (defn chance-watcher
   "chance watcher"
@@ -262,5 +254,6 @@
                           (mount/start-with {#'reset-all true}))))))
           (throw (Exception. (str "status error: " status))))
         (mount/start-with {#'last-check-datetime lastest-datetime})))
+    (mount/start-with {#'last-chance-watcher-time (utils/get-readable-time (System/currentTimeMillis))})
     (catch Exception e
       (log/error "chance watcher ERROR:" e))))
