@@ -141,7 +141,7 @@
   (try
     (log/info "start close!")
     ;; show hand
-    (when (> (:btc (events/my-wallet))
+    (when (> (:btc events/my-wallet)
              0M)
       (log/info "before closing show hand")
       (events/show-hand "sell"))
