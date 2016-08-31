@@ -152,7 +152,8 @@
                              :down-point down-point
                              :down-net-asset-baseline down-net-asset-baseline
                              :deal-times-one-round deal-times-one-round
-                             :datetime (utils/get-readable-time (System/currentTimeMillis))}))
+                             :datetime (utils/get-readable-time (System/currentTimeMillis))}
+                            conf-file))
     (log/info "end close!")
     (catch Exception e
       (log/error "close ERROR:" e)
